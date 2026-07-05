@@ -1,14 +1,16 @@
 /**
  * ClosetRow — fixed 3-slot carousel for the wardrobe closet view.
  *
- * Container must be positioned EXACTLY over the dotted placeholder boxes in the
- * background image (rectangular area below the baked-in hanger graphics).
- * The component renders no hanger — image hangers are visible above the container.
+ * Positioned by wardrobe.tsx starting at lm.hangerBot so photos appear directly
+ * below the hanger arms (TOPS/BOTTOMS) or at lm.boxY for SHOES (shelf display).
+ * The component renders no hanger — background image provides the hanger graphics;
+ * a z=20 overlay in wardrobe.tsx re-draws them on top of the clothing cards.
  *
  * • Divides width into 3 equal slots: left | center | right.
- * • All items identical size; selected item gets a blush-pink border + glow.
+ * • All items identical size (3:4 portrait), no border or shadow.
+ * • Selection is indicated by the pink center hanger in the background image.
  * • Swipe gesture translates the strip; release snaps to the nearest item.
- * • Empty slots are transparent → image's placeholder cards show through.
+ * • Empty slots are transparent — background image shows through.
  *
  * Handle (forwardRef): scrollToIndex(i, smooth?)
  */
@@ -179,9 +181,8 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
     const cardH = cardW * (4 / 3);   // 3:4 portrait (width:height = 3:4)
     const padX  = 0;
 
-    // Blush-pink selection indicator colours
-    const PINK_BORDER = "rgba(225, 110, 155, 0.88)";
-    const PINK_GLOW   = "0 0 0 2px rgba(225,110,155,0.22), 0 4px 18px rgba(225,110,155,0.28)";
+    // Selection is indicated by the pink hanger in the background image —
+    // the photo card itself has no border or shadow in any state.
 
     // Don't render until we've measured the container
     if (!slotW || !containerH) {
@@ -246,8 +247,9 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
                 }}
               >
                 {/* Photo card — 3:4 portrait ratio (cardW × cardH), object-fit:cover.
-                    Blush-pink border + glow on selected; smooth transition on every swipe.
-                    Sits behind the hanger overlay (z=20) rendered in wardrobe.tsx. */}
+                    No border or shadow — selection is shown by the pink hanger
+                    in the background image (center hanger turns pink).
+                    The hanger overlay (z=20 in wardrobe.tsx) renders on top. */}
                 <div
                   style={{
                     width: cardW,
@@ -255,11 +257,8 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
                     overflow: "hidden",
                     borderRadius: "10px",
                     background: "transparent",
-                    border: isCenter
-                      ? `4.5px solid ${PINK_BORDER}`
-                      : "none",
-                    boxShadow: isCenter ? PINK_GLOW : "none",
-                    transition: "border-color 0.24s ease, border-width 0.24s ease, box-shadow 0.24s ease",
+                    border: "none",
+                    boxShadow: "none",
                     position: "relative",
                     pointerEvents: "none",
                     padding: 0,

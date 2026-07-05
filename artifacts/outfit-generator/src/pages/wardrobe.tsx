@@ -314,30 +314,36 @@ export default function WardrobePage() {
 
           {/* ── Three clothing rows ── */}
           {ROWS.map(({ key, addLabel, btnLabel }, rowIdx) => {
-            const lm    = LM.rows[rowIdx];
-            const items = rowData[key];
+            const lm      = LM.rows[rowIdx];
+            const items   = rowData[key];
+            const isShoes = rowIdx === 2;
 
-            // ClosetRow container: from below the rod down to just before next rod.
-            // The photo cards start here; the hanger overlay (z=20) sits on top.
-            const carTop   = pY(ir, lm.boxY);
-            const carH     = pH(ir, lm.boxBot - lm.boxY);
+            // ── Layout constants ──────────────────────────────────────────────
             const carLeft  = pX(ir, LM.doorL);
             const carRight = ir.left + pW(ir, 1 - LM.doorR);
+
+            // Photos start directly below the hanger arms (hangerBot) for
+            // TOPS and BOTTOMS so the full photo is visible under the hanger.
+            // For SHOES there are no hanging hangers — photos sit on the shelf
+            // starting just below the rod (boxY).
+            const photoTopFrac = isShoes ? lm.boxY : lm.hangerBot;
+            const carTop = pY(ir, photoTopFrac);
+            const carH   = pH(ir, lm.boxBot - photoTopFrac);
 
             // "+ ADD" tap zone — centred on the gold rod / pill
             const tapH   = Math.max(36, pH(ir, 0.052));
             const tapTop = pY(ir, lm.btnCY) - tapH / 2;
 
-            // Hanger overlay — exact crop of the background image showing the hanger
-            // region, rendered at z=20 so it sits above clothing photos.
-            // background-position aligns the crop to match the main background img.
-            const hangerH = pH(ir, lm.hangerBot - lm.hangerTop);
-            const hangerBgPosX = -pW(ir, LM.doorL);           // offset left by doorL
-            const hangerBgPosY = -(pH(ir, lm.hangerTop));     // offset up by hangerTop (rT=0)
+            // Hanger overlay — exact crop of the background image re-rendered at
+            // z=20 so the gold/pink hanger graphics always appear ABOVE clothing
+            // photos.  Shoes have no hanging hangers, so skip the overlay.
+            const hangerH      = pH(ir, lm.hangerBot - lm.hangerTop);
+            const hangerBgPosX = -pW(ir, LM.doorL);       // align with main image
+            const hangerBgPosY = -pH(ir, lm.hangerTop);   // rT=0, so simple fraction
 
             return (
               <React.Fragment key={key}>
-                {/* Fixed "+ ADD" tap zone (transparent — image provides the pill visual) */}
+                {/* Fixed "+ ADD" tap zone (transparent — image draws the pill) */}
                 <button
                   onClick={addHandlers[key]}
                   aria-label={btnLabel}
@@ -356,7 +362,7 @@ export default function WardrobePage() {
                   }}
                 />
 
-                {/* ClosetRow — clothing photos, sits behind the hanger overlay */}
+                {/* ClosetRow — clothing photos below the hanger arms */}
                 {items.length > 0 && (
                   <div
                     data-testid={`row-${key}`}
@@ -379,26 +385,27 @@ export default function WardrobePage() {
                   </div>
                 )}
 
-                {/* Hanger overlay — re-renders the hanger region of the background
-                    image at z=20 so gold hangers always appear above clothing photos.
-                    Uses background-image + precise background-position to align
-                    pixel-perfectly with the main <img> background layer. */}
-                <div
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    top:    pY(ir, lm.hangerTop),
-                    left:   carLeft,
-                    right:  carRight,
-                    height: hangerH,
-                    zIndex: 20,
-                    pointerEvents: "none",
-                    backgroundImage: "url('/closet-bg.png')",
-                    backgroundSize:     `${ir.width}px ${ir.height}px`,
-                    backgroundPosition: `${hangerBgPosX}px ${hangerBgPosY}px`,
-                    backgroundRepeat:   "no-repeat",
-                  }}
-                />
+                {/* Hanger overlay — only for rows with hanging hangers (TOPS, BOTTOMS).
+                    Re-draws the background image crop at z=20 so the gold/pink hanger
+                    graphics stay on top of any photo that extends into that region. */}
+                {!isShoes && (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      top:    pY(ir, lm.hangerTop),
+                      left:   carLeft,
+                      right:  carRight,
+                      height: hangerH,
+                      zIndex: 20,
+                      pointerEvents: "none",
+                      backgroundImage: "url('/closet-bg.png')",
+                      backgroundSize:     `${ir.width}px ${ir.height}px`,
+                      backgroundPosition: `${hangerBgPosX}px ${hangerBgPosY}px`,
+                      backgroundRepeat:   "no-repeat",
+                    }}
+                  />
+                )}
               </React.Fragment>
             );
           })}
