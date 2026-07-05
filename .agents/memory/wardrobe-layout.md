@@ -3,43 +3,52 @@ name: Wardrobe image layout strategy
 description: How the closet background image is sized and overlays are positioned on the wardrobe page
 ---
 
-## Strategy
+## Current image
 
-The wardrobe page uses `closet-bg.png` (853×1844 PNG) as a full-screen background with interactive HTML overlays.
+`/closet-bg.jpg` — 853×1713 JPEG (the designer-provided closet reference).
+The old `closet-bg.png` (853×1844) is no longer used.
 
-### Image sizing
-- `<img width="100%" height="auto" position="absolute" top=0 left=0>` — fills full container width, natural height may exceed container (bottom clipped = rug/floor area).
-- `useImageRect` computes the rendered image rect with content-aware scaling:
-  - Full-width first: `imgH = containerW × (1844/853)`
-  - Content constraint: shoes carousel bottom (`LM.rows[2].carBot = 0.800`) must land above `containerH − BAR_H`
-  - If violated (iPhone SE ~375px), scale image down → slight side letterbox (~38px each side)
-  - Modern iPhones (390+): zero letterboxing
+## Sizing strategy
 
-### Landmark fractions
-All landmark values are fractions of the rendered image width/height (0→1). `pX`, `pY`, `pW`, `pH` are helper functions that convert fractions to pixel offsets including `ir.left`.
+`object-fit: CONTAIN` — the image is never cropped; the full closet is always visible.
+
+`useImageRect` uses contain math:
+- Image ratio (853/1713 ≈ 0.498) < any iPhone width/height ratio → container is always WIDER → image fills container HEIGHT with small side letterboxing.
+- iPhone 390 → rW ≈ 375 px, rL ≈ 7.5 px (nearly edge-to-edge)
+- iPhone SE  → rW ≈ 287 px, rL ≈ 44 px (noticeable side letterbox)
+- iPhone Pro Max 430 → rW ≈ 419 px, rL ≈ 5.5 px
+
+Container background: `#F0C238` (matches yellow door colour visible in letterbox area).
+
+## Overlay philosophy
+
+The JPEG already has all visual UI baked in (section labels, "+ ADD" buttons, rods, SAVE OUTFIT bar, chevrons). HTML provides only:
+- **Transparent tap zones** over the baked-in buttons (no visible HTML buttons)
+- **SwipeRow** (cream `rgba(252,245,233,0.94)` background) rendered on top of placeholder cards **only when items exist**
+- **Empty state**: image's own placeholder card graphics show through — no SwipeRow rendered
+
+## Landmark fractions (853×1713 image, fractions 0→1)
 
 ```
-doorL:   0.148   // inner left edge of closet (just inside yellow door)
-doorR:   0.852   // inner right edge
-badgeCY: 0.297   // items badge centre y
-rows[0]: { rodCY: 0.342, carY: 0.371, carBot: 0.507 }  // TOPS
-rows[1]: { rodCY: 0.543, carY: 0.564, carBot: 0.667 }  // BOTTOMS
-rows[2]: { rodCY: 0.707, carY: 0.727, carBot: 0.800 }  // SHOES
-hangerCX:  0.222
-saveBtnL:  0.282
-saveBtnR:  0.718
-manneCX:   0.778
+doorL:   0.123   // inner left edge
+doorR:   0.877   // inner right edge
+
+rows[0]: { btnCY: 0.304, carY: 0.324, carBot: 0.473 }  // TOPS
+rows[1]: { btnCY: 0.504, carY: 0.524, carBot: 0.668 }  // BOTTOMS
+rows[2]: { btnCY: 0.697, carY: 0.717, carBot: 0.862 }  // SHOES
+
+barY:     0.887   // top of SAVE OUTFIT bar
+barBot:   0.958
+hangerCX: 0.152
+saveBtnL: 0.235
+saveBtnR: 0.768
+manneCX:  0.847
 ```
 
-### Bottom bar
-- HTML-rendered (image bottom is clipped), pinned to `bottom: 0`
-- Two-layer: full-width cream backdrop (zIndex 19) + image-width interactive layer (zIndex 20, `left: ir.left, width: ir.width`)
-- Icons use `pW(ir, fraction)` as offset within the image-width layer (correct even with letterboxing)
+## Bottom bar
 
-### Section buttons
-- Large pink pill buttons replace the baked-in "TOPS/BOTTOMS/SHOES" image labels
-- Centered at `rodCY` (positioned on the image's original small label, which the button covers)
-- Height: `Math.max(34, Math.round(pH(ir, 0.058)))` — tall enough to cover the image's small label AND the rod
-- Always visible (not conditional on item count)
+The image's SAVE OUTFIT bar is fully visible at the bottom of the contain-scaled image (bar top at 887% = ~669px, container ~754px). No HTML bar background needed. Only transparent tap zones overlay it.
 
-**Why:** `object-fit: contain` caused 21px side letterboxing on all phones. `object-fit: cover` clips from bottom. The current `width: 100%; height: auto` approach gives zero letterboxing on modern iPhones and the content-aware scale handles SE gracefully.
+Save-outfit name input popup appears ABOVE the bar via `bottom: calc(100% - <barY_px> + 8px)`.
+
+**Why contain over cover:** user explicitly requested "without cropping" and "full closet visible". The image's near-2:1 aspect ratio means only small side letterboxing on modern iPhones.
