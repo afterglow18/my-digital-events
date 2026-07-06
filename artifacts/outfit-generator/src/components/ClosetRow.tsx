@@ -7,8 +7,11 @@
  * a z=20 overlay in wardrobe.tsx re-draws them on top of the clothing cards.
  *
  * • Divides width into 3 equal slots: left | center | right.
- * • All items identical size (3:4 portrait), no border or shadow.
- * • Selection is indicated by the pink center hanger in the background image.
+ * • Photos are inset ~8% within each slot (photoW = slotW * 0.92, 3:4 portrait).
+ *   Inset is applied as horizontal centering (GAP/2 each side) + marginTop (top gap).
+ *   Bottom spacing is implicitly provided by row container overflow clipping.
+ * • Center item: thin soft-pink border (#F7C6D8, 1.5 px). Left/right: borderless.
+ * • Primary selection cue: the pink center hanger baked into the background image.
  * • Swipe gesture translates the strip; release snaps to the nearest item.
  * • Empty slots are transparent — background image shows through.
  *
@@ -175,14 +178,18 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
 
     const lo    = Math.max(0, centredIdx - 2);
     const hi    = Math.min(items.length - 1, centredIdx + 2);
-    // Card: full slot width, 3:4 portrait aspect ratio.
-    // objectFit:cover fills the card and clips excess — clothing stays centred.
-    const cardW = slotW > 0 ? slotW : 0;
-    const cardH = cardW * (4 / 3);   // 3:4 portrait (width:height = 3:4)
-    const padX  = 0;
 
-    // Selection is indicated by the pink hanger in the background image —
-    // the photo card itself has no border or shadow in any state.
+    // ── Card geometry ─────────────────────────────────────────────────────────
+    // Photos are inset ~8% within each slot so there is breathing room between
+    // images and equal whitespace on every side.  The inset is split evenly:
+    // half on left/right (horizontal centering) and half as a top margin.
+    const GAP    = slotW * 0.08;         // total horizontal gap per slot
+    const inset  = GAP / 2;             // equal margin each side
+    const photoW = slotW - GAP;         // ~92% of slot width
+    const photoH = photoW * (4 / 3);    // strict 3:4 portrait ratio
+
+    // Center item gets a thin soft-pink outline; left/right items are borderless.
+    const CENTER_BORDER = "1.5px solid #F7C6D8";
 
     // Don't render until we've measured the container
     if (!slotW || !containerH) {
@@ -236,33 +243,38 @@ export const ClosetRow = forwardRef<ClosetRowHandle, ClosetRowProps>(
                 style={{
                   position: "absolute",
                   top: 0,
-                  left: i * slotW + padX,
-                  width: cardW,
+                  left: i * slotW,
+                  width: slotW,
                   height: "100%",
                   cursor: isCenter ? "pointer" : "ew-resize",
                   background: "transparent",
                   border: "none",
                   padding: 0,
                   WebkitTapHighlightColor: "transparent",
+                  // Center the inset card horizontally inside the full-width button
+                  display: "flex",
+                  justifyContent: "center",
                 }}
               >
-                {/* Photo card — 3:4 portrait ratio (cardW × cardH), object-fit:cover.
-                    No border or shadow — selection is shown by the pink hanger
-                    in the background image (center hanger turns pink).
-                    The hanger overlay (z=20 in wardrobe.tsx) renders on top. */}
+                {/* Photo card — inset ~8% within its slot for breathing room.
+                    Center item: thin soft-pink outline (#F7C6D8).
+                    Left/right items: borderless.
+                    Pink hanger in background image is the primary selection cue.
+                    Hanger overlay at z=20 (wardrobe.tsx) renders on top. */}
                 <div
                   style={{
-                    width: cardW,
-                    height: cardH,
+                    width: photoW,
+                    height: photoH,
                     overflow: "hidden",
                     borderRadius: "10px",
                     background: "transparent",
-                    border: "none",
+                    border: isCenter ? CENTER_BORDER : "none",
                     boxShadow: "none",
                     position: "relative",
                     pointerEvents: "none",
                     padding: 0,
                     flexShrink: 0,
+                    marginTop: inset,  // equal top gap matches left/right inset
                   }}
                 >
                   {item.imageObjectPath ? (
