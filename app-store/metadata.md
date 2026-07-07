@@ -76,8 +76,7 @@ https://your-app-url.replit.app
 
 ## Privacy Policy URL
 
-⚠️  **Required before submission.** Apple requires a privacy policy for all apps.
-You can generate one at https://www.privacypolicygenerator.info or https://termly.io.
+https://classy-alpaca-441.notion.site/Privacy-Policy-39682db6065380b19dedcb108d4a0ef4
 
 Key points to cover:
 - What data is collected (clothing images, outfit data)

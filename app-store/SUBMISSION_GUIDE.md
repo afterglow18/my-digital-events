@@ -146,7 +146,7 @@ Apple's review takes **1–3 business days** for a first submission.
 - [ ] API server is deployed and the URL is set as `VITE_API_BASE_URL`
 - [ ] App icon (1024×1024 PNG) committed to `app-store/AppIcon-1024.png`
 - [ ] Screenshots captured for iPhone 6.9" and 6.5"
-- [ ] Privacy Policy URL added to App Store Connect
+- [ ] Privacy Policy URL added to App Store Connect: https://classy-alpaca-441.notion.site/Privacy-Policy-39682db6065380b19dedcb108d4a0ef4
 - [ ] `app-store/ExportOptions.plist` updated with your Team ID
 - [ ] In-App Purchase created in App Store Connect (Product ID: `com.mydigitalcloset.app.premium`)
 - [ ] Stripe webhook is configured for your deployed API URL
