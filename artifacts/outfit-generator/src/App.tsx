@@ -1,9 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { AppLayout } from './components/layout/AppLayout';
 import WardrobePage from './pages/wardrobe';
 import GeneratePage from './pages/generate';
 import SavedPage from './pages/saved';
+import WelcomePage from './pages/welcome';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,10 +39,39 @@ function Router() {
 }
 
 function App() {
+  // Show the welcome screen once per session. The wardrobe pre-loads beneath
+  // the overlay so the transition after the door animation is instant.
+  const [entered, setEntered] = useState<boolean>(
+    () => sessionStorage.getItem("closet-entered") === "1"
+  );
+
+  const handleEnter = useCallback(() => {
+    sessionStorage.setItem("closet-entered", "1");
+    setEntered(true);
+  }, []);
+
+  // While the welcome overlay is visible, make the underlying app content
+  // inert so keyboard users cannot focus hidden controls behind the doors.
+  const routerWrapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = routerWrapRef.current;
+    if (!el) return;
+    if (!entered) {
+      el.setAttribute("inert", "");
+      el.setAttribute("aria-hidden", "true");
+    } else {
+      el.removeAttribute("inert");
+      el.removeAttribute("aria-hidden");
+    }
+  }, [entered]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-        <Router />
+        <div ref={routerWrapRef}>
+          <Router />
+        </div>
+        {!entered && <WelcomePage onEnter={handleEnter} />}
       </WouterRouter>
     </QueryClientProvider>
   );
