@@ -73,6 +73,10 @@ const pW = (ir: ImgRect, f: number) => ir.width  * f;
 const pX = (ir: ImgRect, f: number) => ir.left   + ir.width  * f;
 const pY = (ir: ImgRect, f: number) => ir.top    + ir.height * f;
 
+// Pill fill colours sampled from closet-bg.png at each row's centre pixel.
+// Used to cover the baked-in "+ ADD …" text on the Generate page only.
+const PILL_COLORS = ["#F9EAE6", "#EBE8E8", "#FAEFEB"] as const;
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RowKey = "tops" | "bottoms" | "shoes";
 type Phase  = "idle" | "spinning" | "result";
@@ -322,6 +326,23 @@ export default function GeneratePage() {
                       backgroundSize: `${ir.width}px ${ir.height}px`,
                       backgroundPosition: `${bgPosX}px ${bgPosY}px`,
                       backgroundRepeat: "no-repeat",
+                    }}
+                  />
+
+                  {/* Text-cover — hides baked-in "+ ADD …" label on Generate page only.
+                      Solid pill-coloured rect centred on the button, z=21. */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      top:    pY(ir, lm.btnCY) - pH(ir, 0.009),
+                      left:   carLeft + pW(ir, 0.04),
+                      right:  carRight + pW(ir, 0.04),
+                      height: pH(ir, 0.018),
+                      zIndex: 21,
+                      pointerEvents: "none",
+                      background: PILL_COLORS[rowIdx],
+                      borderRadius: 999,
                     }}
                   />
 
