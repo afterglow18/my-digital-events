@@ -575,16 +575,16 @@ export default function GeneratePage() {
                         whiteSpace: "nowrap",
                         boxShadow: "2px 2px 0 rgba(0,0,0,0.85)",
                         cursor: "pointer",
-                        display: "flex", alignItems: "center",
-                        justifyContent: "space-between",
-                        paddingLeft: 18, paddingRight: 14,
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center",
+                        gap: 2, padding: "0 12px",
                       }}
                     >
                       <span>As If!</span>
-                      <span style={{ fontSize: 15, lineHeight: 1 }}>✨</span>
+                      <span style={{ fontSize: 14, lineHeight: 1 }}>✨</span>
                     </button>
 
-                    {/* SAVE IT — white, icon far right */}
+                    {/* SAVE IT — white, icon below text */}
                     <button
                       onClick={() => setIsSaveOpen(true)}
                       disabled={!canSave}
@@ -604,13 +604,13 @@ export default function GeneratePage() {
                         boxShadow: canSave ? "2px 2px 0 rgba(0,0,0,0.85)" : "none",
                         cursor: canSave ? "pointer" : "default",
                         opacity: canSave ? 1 : 0.5,
-                        display: "flex", alignItems: "center",
-                        justifyContent: "space-between",
-                        paddingLeft: 18, paddingRight: 14,
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center",
+                        gap: 2, padding: "0 12px",
                       }}
                     >
                       <span>Save It</span>
-                      <span style={{ fontSize: 15, lineHeight: 1 }}>♡</span>
+                      <span style={{ fontSize: 14, lineHeight: 1 }}>♡</span>
                     </button>
                   </motion.div>
                 )}
