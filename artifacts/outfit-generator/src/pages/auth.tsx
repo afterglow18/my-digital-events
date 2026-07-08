@@ -250,7 +250,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated: () => v
                 <motion.div key="forgot" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
                   <form onSubmit={handleForgot} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <p style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.7)", textAlign: "center", lineHeight: 1.5, margin: "0 0 4px" }}>
-                      Enter your email and we'll send you a reset link.
+                      Enter your email and we'll send you a reset link. Please check your Spam folder.
                     </p>
                     <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required autoCapitalize="none" autoCorrect="off" style={INPUT_STYLE} />
 
