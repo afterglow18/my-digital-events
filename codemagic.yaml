@@ -23,7 +23,7 @@ workflows:
     instance_type: mac_mini_m2
 
     integrations:
-      app_store_connect: codemagic_api_key   # name of the key you add in Codemagic → Integrations
+      app_store_connect: My Digital Closet App   # name of the key in Codemagic → Integrations
 
     environment:
       ios_signing:
