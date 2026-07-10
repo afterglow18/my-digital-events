@@ -75,8 +75,7 @@ workflows:
       - name: Apply provisioning profiles
         script: |
           xcode-project use-profiles \
-            --project artifacts/outfit-generator/ios/App/App.xcodeproj \
-            --scheme App
+            --project artifacts/outfit-generator/ios/App/App.xcodeproj
 
       - name: Resolve Swift Package dependencies
         script: |
