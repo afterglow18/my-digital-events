@@ -74,21 +74,24 @@ workflows:
 
       - name: Resolve Swift Package dependencies
         script: |
+          cd artifacts/outfit-generator/ios/App
           xcodebuild \
             -resolvePackageDependencies \
-            -workspace "$XCODE_WORKSPACE" \
-            -scheme "$XCODE_SCHEME"
+            -workspace App.xcodeproj/project.xcworkspace \
+            -scheme App
 
       - name: Xcode archive
         script: |
+          cd artifacts/outfit-generator/ios/App
           xcodebuild \
-            -workspace "$XCODE_WORKSPACE" \
-            -scheme "$XCODE_SCHEME" \
+            -workspace App.xcodeproj/project.xcworkspace \
+            -scheme App \
             -sdk iphoneos \
             -configuration Release \
+            ONLY_ACTIVE_ARCH=NO \
+            ARCHS=arm64 \
             -archivePath "$CM_BUILD_DIR/build/App.xcarchive" \
-            archive \
-            | xcpretty
+            archive
 
       - name: Export IPA
         script: |
