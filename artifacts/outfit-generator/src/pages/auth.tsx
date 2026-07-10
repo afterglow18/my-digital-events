@@ -66,6 +66,27 @@ const BTN_STYLE = (loading: boolean): React.CSSProperties => ({
 
 type Mode = "signin" | "signup" | "forgot" | "forgot-sent" | "reset" | "reset-done";
 
+function EyeIcon({ open }: { open: boolean }) {
+  return open ? (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  ) : (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+      <line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  );
+}
+
+const EYE_BTN: React.CSSProperties = {
+  position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+  background: "none", border: "none", cursor: "pointer", padding: 0,
+  color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center",
+};
+
 export default function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
   const { login, register } = useAuthContext();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -84,6 +105,9 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated: () => v
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Clear reset_token from URL without reload
   useEffect(() => {
@@ -215,7 +239,10 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated: () => v
                 <motion.div key="auth" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
                   <form onSubmit={handleSignInOrUp} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required autoCapitalize="none" autoCorrect="off" style={INPUT_STYLE} />
-                    <input type="password" placeholder={mode === "signup" ? "Password (min. 6 characters)" : "Password"} value={password} onChange={e => setPassword(e.target.value)} required style={INPUT_STYLE} />
+                    <div style={{ position: "relative" }}>
+                      <input type={showPassword ? "text" : "password"} placeholder={mode === "signup" ? "Password (min. 6 characters)" : "Password"} value={password} onChange={e => setPassword(e.target.value)} required style={{ ...INPUT_STYLE, paddingRight: 42 }} />
+                      <button type="button" style={EYE_BTN} onClick={() => setShowPassword(v => !v)} tabIndex={-1}><EyeIcon open={showPassword} /></button>
+                    </div>
 
                     {mode === "signin" && (
                       <button type="button" onClick={() => { setMode("forgot"); setError(""); }}
@@ -291,8 +318,14 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated: () => v
               {mode === "reset" && (
                 <motion.div key="reset" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
                   <form onSubmit={handleReset} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <input type="password" placeholder="New password (min. 6 characters)" value={newPassword} onChange={e => setNewPassword(e.target.value)} required style={INPUT_STYLE} />
-                    <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={INPUT_STYLE} />
+                    <div style={{ position: "relative" }}>
+                      <input type={showNew ? "text" : "password"} placeholder="New password (min. 6 characters)" value={newPassword} onChange={e => setNewPassword(e.target.value)} required style={{ ...INPUT_STYLE, paddingRight: 42 }} />
+                      <button type="button" style={EYE_BTN} onClick={() => setShowNew(v => !v)} tabIndex={-1}><EyeIcon open={showNew} /></button>
+                    </div>
+                    <div style={{ position: "relative" }}>
+                      <input type={showConfirm ? "text" : "password"} placeholder="Confirm new password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={{ ...INPUT_STYLE, paddingRight: 42 }} />
+                      <button type="button" style={EYE_BTN} onClick={() => setShowConfirm(v => !v)} tabIndex={-1}><EyeIcon open={showConfirm} /></button>
+                    </div>
 
                     <AnimatePresence>
                       {error && (
