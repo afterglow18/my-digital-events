@@ -279,7 +279,7 @@ export default function GeneratePage() {
               const btnH   = Math.max(32, pH(ir, 0.045));
 
               const label = key === "fragrances" ? "FRAGRANCES" : key.toUpperCase();
-              const labelY = pY(ir, (lm.btnCY + lm.sectionTop) / 2);
+              const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.25);
 
               return (
                 <React.Fragment key={key}>
