@@ -368,22 +368,34 @@ export default function WardrobePage() {
             }}
           />
 
-          {/* ── SAVE tap zone — over the baked-in sparkles/SAVE icon ── */}
+          {/* ── SAVE circular button — covers the baked-in circle ── */}
           <button
             onClick={() => { setSaveName(""); setIsSaveOpen(true); }}
             aria-label="Save current look"
             style={{
               position: "absolute",
-              top:    pY(ir, 0.905),
-              left:   pX(ir, 0.436),
-              width:  pW(ir, 0.110),
-              height: pH(ir, 0.065),
-              zIndex: 25,
-              background: "transparent",
-              border: "none",
+              top:    pY(ir, 0.9466) - pW(ir, 0.0625),
+              left:   pX(ir, 0.491)  - pW(ir, 0.0625),
+              width:  pW(ir, 0.125),
+              height: pW(ir, 0.125),
+              borderRadius: "50%",
+              zIndex: 26,
+              background: "linear-gradient(160deg, #ffb6c8 0%, #e8607a 100%)",
+              border: "2px solid rgba(255,255,255,0.6)",
+              boxShadow: "0 2px 8px rgba(200,60,90,0.35), inset 0 1px 1px rgba(255,255,255,0.4)",
               cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 0,
+              lineHeight: 1.15,
+              padding: 0,
             }}
-          />
+          >
+            <span style={{ fontSize: pW(ir, 0.030), fontWeight: 900, color: "#fff", letterSpacing: "0.06em", fontFamily: "var(--font-display)", textShadow: "0 1px 2px rgba(0,0,0,0.18)" }}>SAVE</span>
+            <span style={{ fontSize: pW(ir, 0.026), fontWeight: 800, color: "#fff", letterSpacing: "0.04em", fontFamily: "var(--font-display)", textShadow: "0 1px 2px rgba(0,0,0,0.18)" }}>LOOK 🩷</span>
+          </button>
         </>
       )}
 
