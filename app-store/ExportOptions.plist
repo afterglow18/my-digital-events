@@ -8,7 +8,7 @@
   <key>teamID</key>
   <string>2A78MFVCJS</string>
   <key>signingStyle</key>
-  <string>manual</string>
+  <string>automatic</string>
   <key>uploadSymbols</key>
   <true/>
   <key>compileBitcode</key>

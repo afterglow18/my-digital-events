@@ -1,19 +1,15 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Codemagic CI/CD — My Digital Suitcase iOS build  (manual signing)
+# Codemagic CI/CD — My Digital Suitcase iOS build
 # ─────────────────────────────────────────────────────────────────────────────
 #
-# Code signing: upload your Distribution certificate (.p12) and provisioning
-# profile (.mobileprovision) in Codemagic → your app → Code signing.
-#
 # REQUIRED — Codemagic → your app → Environment variables
-# Group "build_env":
-#   VITE_API_BASE_URL                  Your deployed API URL
-#
-# Upload to TestFlight still needs the App Store Connect API key:
-#   APP_STORE_CONNECT_KEY_IDENTIFIER   (your key ID)
+# Group "signing":
+#   APP_STORE_CONNECT_KEY_IDENTIFIER   (your key ID, e.g. 67K2T48W7Y)
 #   APP_STORE_CONNECT_ISSUER_ID        (your issuer ID)
 #   APP_STORE_CONNECT_PRIVATE_KEY      Full .p8 file contents (mark Secure)
-# Add these to a group called "asc" and add it under environment → groups.
+#
+# Group "build_env":
+#   VITE_API_BASE_URL                  Your deployed API URL
 
 workflows:
   ios-app-store:
@@ -22,9 +18,13 @@ workflows:
     instance_type: mac_mini_m2
 
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mydigitalsuitcase.app
       xcode: latest
       node: 22
       groups:
+        - signing
         - build_env
       vars:
         XCODE_SCHEME: App
