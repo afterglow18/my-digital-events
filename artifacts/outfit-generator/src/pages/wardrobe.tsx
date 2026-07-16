@@ -213,9 +213,9 @@ export default function WardrobePage() {
       style={{
         position: "relative",
         width: "100%",
-        height: `min(calc(100dvh - ${NAV_H}px), calc(100vw * ${(IMG_H / IMG_W).toFixed(6)}))`,
+        height: `calc(100dvh - ${NAV_H}px)`,
         overflow: "hidden",
-        background: "#C8B9A2",
+        background: "#1C0E05",
       }}
     >
       {/* ── Background image ── */}
