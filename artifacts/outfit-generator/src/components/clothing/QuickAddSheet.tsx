@@ -185,7 +185,8 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
       className="fixed inset-0 z-[70] flex flex-col max-w-md mx-auto bg-[#f9f4ee]"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b-2 border-black flex-shrink-0">
+      <div className="flex items-center justify-between px-4 bg-white border-b-2 border-black flex-shrink-0"
+        style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))", paddingBottom: "0.75rem" }}>
         <h2 className="font-display font-bold text-xl uppercase tracking-tight">
           Add {label}
         </h2>
