@@ -289,6 +289,18 @@ export default function GeneratePage() {
               }}>
                 MY DIGITAL SUITCASE
               </div>
+              <div style={{
+                fontFamily: "var(--font-display, serif)",
+                fontWeight: 900,
+                fontSize: Math.max(12, Math.min(pW(ir, 0.055), ir.containerH * 0.042)),
+                letterSpacing: "0.06em",
+                whiteSpace: "nowrap",
+                textTransform: "uppercase",
+                color: "#1a0800",
+                lineHeight: 1.1,
+              }}>
+                MATCHMAKER
+              </div>
             </div>
 
             {/* ── 4 shelf carousels + ADD-button covers ── */}
