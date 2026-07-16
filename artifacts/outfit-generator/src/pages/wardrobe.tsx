@@ -220,16 +220,16 @@ export default function WardrobePage() {
         background: "#1C0E05",
       }}
     >
-      {/* ── Background image ── */}
+      {/* ── Background image — object-fit:cover avoids WebKit negative-left clipping bug ── */}
       <img
         src="/suitcase-open-bg.jpg"
         alt="My Digital Suitcase"
         style={{
           position: "absolute",
-          top:    ready ? ir.top  : 0,
-          left:   ready ? ir.left : 0,
-          width:  ready ? ir.width  : "100%",
-          height: ready ? ir.height : "auto",
+          top: 0, left: 0,
+          width: "100%", height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
           display: "block",
           pointerEvents: "none",
           userSelect: "none",
