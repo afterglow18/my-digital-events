@@ -409,7 +409,7 @@ export default function GeneratePage() {
                     padding: "3px 11px", borderRadius: 20,
                     whiteSpace: "nowrap",
                   }}>
-                    Planning your trip…
+                    Packing your bag…
                   </span>
                 </motion.div>
               )}
