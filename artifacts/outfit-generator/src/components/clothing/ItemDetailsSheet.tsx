@@ -192,6 +192,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
           queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getWardrobeStatsQueryKey() });
           onClose();
         },
       }
@@ -205,6 +206,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
           queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getWardrobeStatsQueryKey() });
           onDeleted?.();
           onClose();
         },
@@ -239,6 +241,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                   onSuccess: () => {
                     queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
                     queryClient.invalidateQueries({ queryKey: getListOutfitsQueryKey() });
+                    queryClient.invalidateQueries({ queryKey: getWardrobeStatsQueryKey() });
                   },
                 }
               );

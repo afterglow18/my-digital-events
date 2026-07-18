@@ -129,6 +129,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
           {
             onSuccess: (createdItem) => {
               queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
+              queryClient.invalidateQueries({ queryKey: getWardrobeStatsQueryKey() });
               if (onCreated) onCreated(createdItem);
               resolve();
             },
