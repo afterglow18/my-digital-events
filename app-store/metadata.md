@@ -6,7 +6,7 @@
 |---|---|
 | **App Name** | My Digital Closet |
 | **Subtitle** (30 chars max) | Style your wardrobe with AI |
-| **Bundle ID** | com.mydigitalcloset.app |
+| **Bundle ID** | com.mydigitalevents.app |
 | **SKU** | MYDIGITALCLOSET001 |
 | **Primary Category** | Lifestyle |
 | **Secondary Category** | Shopping |
@@ -107,7 +107,7 @@ Key points to cover:
 | Field | Value |
 |---|---|
 | **Reference Name** | My Digital Closet Premium |
-| **Product ID** | com.mydigitalcloset.app.premium |
+| **Product ID** | com.mydigitalevents.app.premium |
 | **Type** | Non-Consumable |
 | **Price** | $4.99 (Tier 5) |
 | **Display Name** | My Digital Closet Premium |
