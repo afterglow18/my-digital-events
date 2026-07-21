@@ -8,8 +8,7 @@
 #   APP_STORE_CONNECT_ISSUER_ID        66d4ce13-148d-4d6b-bab8-f1d0d8441a1e
 #   APP_STORE_CONNECT_PRIVATE_KEY      Full .p8 file contents (mark Secure)
 #
-# Group "build_env":
-#   VITE_API_BASE_URL                  Your deployed API URL
+# VITE_API_BASE_URL is set inline in vars below
 
 workflows:
   ios-app-store:
@@ -25,7 +24,6 @@ workflows:
       node: 22
       groups:
         - signing
-        - build_env
       vars:
         XCODE_SCHEME: App
         XCODE_PROJECT: artifacts/outfit-generator/ios/App/App.xcodeproj
@@ -34,6 +32,7 @@ workflows:
         BUNDLE_ID: com.mydigitalevents.app
         TEAM_ID: 2A78MFVCJS
         PROFILE_NAME: My Digital Events
+        VITE_API_BASE_URL: https://my-digital-events.replit.app/api
 
     scripts:
       - name: Install pnpm and dependencies
