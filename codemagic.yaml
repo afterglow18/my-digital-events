@@ -5,7 +5,7 @@
 # REQUIRED — Codemagic → your app → Environment variables
 # Group "signing":
 #   APP_STORE_CONNECT_KEY_IDENTIFIER   932BPJ6WVX
-#   APP_STORE_CONNECT_ISSUER_ID        (your issuer ID)
+#   APP_STORE_CONNECT_ISSUER_ID        66d4ce13-148d-4d6b-bab8-f1d0d8441a1e
 #   APP_STORE_CONNECT_PRIVATE_KEY      Full .p8 file contents (mark Secure)
 #
 # Group "build_env":
