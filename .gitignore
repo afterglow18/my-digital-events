@@ -51,3 +51,4 @@ Thumbs.db
 # Large media files — store outside git
 *.mov
 *.mp4
+*.p8

@@ -157,25 +157,15 @@ workflows:
 
       - name: Upload to TestFlight
         script: |
-          # Use the .p8 key file Codemagic already placed on this machine
-          # for the Developer Portal integration (same key, same ID)
-          KEY_FILE=$(find /Users/builder -name "AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8" 2>/dev/null | head -1)
-          if [ -z "$KEY_FILE" ]; then
-            echo "Exact key not found, searching for any .p8..."
-            KEY_FILE=$(find /Users/builder -name "AuthKey_*.p8" 2>/dev/null | head -1)
-          fi
-          if [ -z "$KEY_FILE" ]; then
-            echo "ERROR: No .p8 key file found on machine"
-            find /Users/builder -name "*.p8" 2>/dev/null || true
-            exit 1
-          fi
-          echo "Using key file: $KEY_FILE"
+          # Write the private key from the env var to a temp file
+          echo "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/AuthKey.p8
           app-store-connect publish \
             --path "$CM_BUILD_DIR/build/ipa/App.ipa" \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --private-key "@file:$KEY_FILE" \
+            --key-id "932BPJ6WVX" \
+            --issuer-id "66d4ce13-148d-4d6b-bab8-f1d0d8441a1e" \
+            --private-key "@file:/tmp/AuthKey.p8" \
             --testflight
+          rm -f /tmp/AuthKey.p8
 
     artifacts:
       - $CM_BUILD_DIR/build/ipa/*.ipa
