@@ -15,6 +15,19 @@ const config: CapacitorConfig = {
     backgroundColor: '#F9F4EE',
     // Allow inline media playback (used for wardrobe image previews)
     allowsInlineMediaPlayback: true,
+
+    // Privacy usage descriptions — iOS refuses camera/picker access (SIGABRT via
+    // TCC) if any of these three keys is missing from Info.plist.
+    // NSPhotoLibraryAddUsageDescription is required when the Camera plugin saves
+    // a captured photo back to the device library (commonly overlooked).
+    infoPlist: {
+      NSCameraUsageDescription:
+        'My Events uses your camera to photograph outfits and event looks.',
+      NSPhotoLibraryUsageDescription:
+        'My Events reads your photo library so you can choose existing photos for your wardrobe.',
+      NSPhotoLibraryAddUsageDescription:
+        'My Events saves photos you take directly to your library.',
+    },
   },
 
   plugins: {
