@@ -121,8 +121,15 @@ function TierCard({
 
 // ── Sheet ─────────────────────────────────────────────────────────────────────
 
+const PRIVACY_URL = "https://app.notion.com/p/My-Digital-Collection-Privacy-Policy-39682db6065380b19dedcb108d4a0ef4?source=copy_link";
+const EULA_URL    = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+
+function openUrl(url: string) {
+  window.open(url, "_system");
+}
+
 export function UpgradeSheet({ reason, onClose }: Props) {
-  const { offerings, purchase } = useSubscription();
+  const { offerings, purchase, restore, isRestoring } = useSubscription();
   const [selected, setSelected] = useState<TierId>("lifetime");
   const [status,   setStatus]   = useState<"idle" | "pending">("idle");
 
@@ -257,6 +264,28 @@ export function UpgradeSheet({ reason, onClose }: Props) {
         >
           Maybe Later
         </button>
+        <button
+          onClick={() => restore()}
+          disabled={isRestoring}
+          className="text-xs font-semibold text-black/35 text-center hover:text-black/55 transition-colors disabled:opacity-50"
+        >
+          {isRestoring ? "Restoring…" : "Restore Purchases"}
+        </button>
+        <p className="text-[10px] text-black/30 text-center leading-snug">
+          <button
+            onClick={() => openUrl(EULA_URL)}
+            className="underline underline-offset-2 hover:text-black/50 transition-colors"
+          >
+            Terms of Use
+          </button>
+          {" · "}
+          <button
+            onClick={() => openUrl(PRIVACY_URL)}
+            className="underline underline-offset-2 hover:text-black/50 transition-colors"
+          >
+            Privacy Policy
+          </button>
+        </p>
       </div>
     </motion.div>
   );
