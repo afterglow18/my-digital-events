@@ -47,3 +47,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Large media files — store outside git
+*.mov
+*.mp4
