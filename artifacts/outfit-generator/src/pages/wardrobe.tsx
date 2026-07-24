@@ -37,6 +37,7 @@ import { UpgradeSheet, UpgradeReason } from "@/components/paywall/UpgradeSheet";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { FREE_ITEM_LIMIT } from "@/lib/entitlements";
+import { useNavHeight } from "@/hooks/useNavHeight";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RowKey   = "outfits" | "beauty" | "toiletries" | "essentials";
@@ -52,7 +53,9 @@ const ROWS: { key: RowKey; btnLabel: string }[] = [
 // ── Image constants ───────────────────────────────────────────────────────────
 const IMG_W = 1024;
 const IMG_H = 1536;
-const NAV_H = 90;
+// NAV_H is 0 on iPad (sidebar nav) and 90 on phone (bottom nav)
+// eslint-disable-next-line react-hooks/rules-of-hooks
+const NAV_H = useNavHeight();
 
 // ── Landmark fractions (calibrated for suitcase-open-bg.jpg 989×1536) ─────────
 // Real-photo suitcase, shot from above.

@@ -160,7 +160,7 @@ export default function SavedPage() {
   };
 
   return (
-    <div className="min-h-full flex flex-col pt-8 px-4 pb-8 bg-secondary/10 relative">
+    <div className="min-h-full flex flex-col pt-8 px-4 pb-8 bg-secondary/10 relative md:px-8 md:max-w-4xl md:mx-auto md:w-full">
       <header className="mb-6">
         <h1 className="text-4xl font-display font-bold uppercase tracking-tighter mb-1">Lookbook</h1>
         <div className="flex items-center justify-between">

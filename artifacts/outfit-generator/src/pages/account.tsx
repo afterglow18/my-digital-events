@@ -156,7 +156,7 @@ export default function AccountPage() {
   return (
     <>
     <div
-      className="min-h-full flex flex-col px-4 pb-10"
+      className="min-h-full flex flex-col px-4 pb-10 md:px-8 md:max-w-2xl md:mx-auto md:w-full"
       style={{ paddingTop: "max(2rem, env(safe-area-inset-top))", background: "#F5F0E8" }}
     >
       {/* Page title */}
