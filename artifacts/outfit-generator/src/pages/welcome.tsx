@@ -265,7 +265,7 @@ export default function WelcomePage({ onEnter }: Props) {
             lineHeight: 1.1,
             color: "#E8D4B0",
           }}>
-            MY DIGITAL<br />SUITCASE
+            MY DIGITAL<br />EVENTS
           </div>
           <div style={{
             marginTop: 9,
@@ -275,7 +275,7 @@ export default function WelcomePage({ onEnter }: Props) {
             textTransform: "uppercase" as const,
             color: "rgba(232,212,176,0.42)",
           }}>
-            your travel collection
+            your event collection
           </div>
         </div>
 
@@ -303,7 +303,7 @@ export default function WelcomePage({ onEnter }: Props) {
             pointerEvents: phase === "idle" ? "auto" : "none",
           }}
         >
-          Open Suitcase ✨
+          Open Events ✨
         </motion.button>
       </motion.div>
 
