@@ -1,12 +1,9 @@
 /**
  * QuickAddSheet
  *
- * Upload flow (single photo):
- *   pick ──(file chosen)──► encoding ──► preview (bg removal runs in parallel)
- *        ──(user taps Save)──► uploading ──► close
- *
- * Upload flow (multiple photos via gallery):
- *   pick ──(files chosen)──► uploading ──► close
+ * Upload flow — every photo (single or multi-select) goes through comparison:
+ *   pick ──(files chosen)──► encoding ──► preview (bg removal runs in parallel)
+ *        ──(user taps Save)──► [next photo or close]
  *
  * Background removal is on-device via @imgly/background-removal.
  * The model (~15 MB) downloads once from the imgly CDN then is permanently
@@ -21,7 +18,6 @@ import {
   getWardrobeStatsQueryKey,
 } from "@/hooks/useLocalDB";
 import { useQueryClient } from "@tanstack/react-query";
-import { encodeToPng } from "@/lib/processImage";
 import {
   removeBackground,
   blobToDataUrl,
@@ -44,11 +40,6 @@ type Phase =
   | "encoding"  // canvas resize — shown instantly after photo is picked
   | "preview"   // side-by-side Original | Cleaned comparison
   | "uploading"; // saving to IndexedDB
-
-interface UploadProgress {
-  current: number;
-  total:   number;
-}
 
 // ── Helpers (outside component so they don't re-create on render) ─────────────
 
@@ -123,7 +114,6 @@ interface Props {
   onOpenChange:  (open: boolean) => void;
   category:      Category;
   existingCount: number;
-  /** Called with the newly created item after a successful upload. */
   onCreated?:    (item: import("@/lib/db").ClothingItem) => void;
 }
 
@@ -142,11 +132,15 @@ const CATEGORY_EXAMPLES: Record<string, { emoji: string; items: string[] }> = {
 };
 
 export function QuickAddSheet({ open, onOpenChange, category, existingCount, onCreated }: Props) {
-  const [phase,    setPhase]   = useState<Phase>("pick");
+  const [phase,    setPhase]    = useState<Phase>("pick");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [progress, setProgress] = useState<UploadProgress | null>(null);
 
-  // ── Background-removal state (single-file preview flow) ───────────────────
+  // ── Multi-photo queue ─────────────────────────────────────────────────────
+  // All selected files are queued; each goes through the comparison flow in turn.
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [photoIndex,   setPhotoIndex]   = useState(0);
+
+  // ── Background-removal state ──────────────────────────────────────────────
   const [originalBlob, setOriginalBlob] = useState<Blob | null>(null);
   const [originalUrl,  setOriginalUrl]  = useState<string | null>(null);
   const [cleanedBlob,  setCleanedBlob]  = useState<Blob | null>(null);
@@ -158,26 +152,26 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
   // prevents a slow first photo from clobbering a fast second one.
   const bgGenRef = useRef(0);
 
-  // Two separate file inputs: one triggers camera, one opens gallery
   const cameraInputRef  = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const createItem  = useCreateClothingItem();
   const queryClient = useQueryClient();
 
-  // ── Reset ─────────────────────────────────────────────────────────────────
+  // ── Full reset ────────────────────────────────────────────────────────────
   const handleClose = useCallback(() => {
     bgGenRef.current += 1;  // cancels any in-flight removal
     setBgProcessing(false); // MUST reset — close can happen mid-removal
     setPhase("pick");
     setErrorMsg(null);
-    setProgress(null);
     setOriginalBlob(null);
     setOriginalUrl(null);
     setCleanedBlob(null);
     setCleanedUrl(null);
     setBgFailed(false);
     setSelected("original");
+    setPendingFiles([]);
+    setPhotoIndex(0);
     onOpenChange(false);
   }, [onOpenChange]);
 
@@ -209,23 +203,11 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
     }
   }, [category, createItem, queryClient, onCreated]);
 
-  // ── Single-file encode + save for batch flow (unchanged path) ─────────────
-  const saveOneFile = useCallback(async (file: File, itemIndex: number): Promise<boolean> => {
-    let png: Blob;
-    try {
-      png = await encodeToPng(file);
-    } catch (err) {
-      console.error("PNG encoding failed:", err);
-      return false;
-    }
-    return saveChosenBlob(png, itemIndex);
-  }, [saveChosenBlob]);
-
-  // ── Single-file preview flow (camera or single gallery pick) ─────────────
+  // ── Single-photo comparison flow ──────────────────────────────────────────
+  // Called for every photo — including each one in a multi-photo batch.
   const handleFile = useCallback(async (file: File | Blob) => {
     setErrorMsg(null);
-    // Switch to "encoding" BEFORE any async work so the user sees a
-    // spinner immediately instead of sitting on the pick screen for 1–3 s.
+    // Switch to "encoding" BEFORE any await so the spinner appears instantly.
     const myGen = ++bgGenRef.current;
     setOriginalBlob(null);
     setOriginalUrl(null);
@@ -236,7 +218,6 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
     setSelected("original");
     setPhase("encoding");
 
-    // Encode to JPEG ≤ 2048 px
     let jpeg: Blob;
     try {
       jpeg = await encodeForUpload(file);
@@ -248,12 +229,10 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
     }
     if (bgGenRef.current !== myGen) return;
 
-    // Show original, switch to comparison screen
     setOriginalBlob(jpeg);
     setOriginalUrl(URL.createObjectURL(jpeg));
     setPhase("preview");
 
-    // Background removal — generation guard discards stale results
     setBgProcessing(true);
     try {
       const dataUrl   = await blobToDataUrl(jpeg);
@@ -275,59 +254,42 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
     }
   }, []);
 
-  // ── Save the chosen version (from the preview screen) ────────────────────
-  const handleSave = useCallback(async () => {
+  // ── Save chosen version, then advance to next photo or close ─────────────
+  const handleSave = useCallback(async (currentIndex: number, queue: File[]) => {
     const blob = selected === "cleaned" && cleanedBlob ? cleanedBlob : originalBlob;
     if (!blob) return;
     setPhase("uploading");
-    const ok = await saveChosenBlob(blob, existingCount);
-    if (ok) {
-      handleClose();
-    } else {
+    const ok = await saveChosenBlob(blob, existingCount + currentIndex);
+    if (!ok) {
       setErrorMsg("Save failed — please try again.");
       setPhase("preview");
+      return;
     }
-  }, [selected, cleanedBlob, originalBlob, saveChosenBlob, existingCount, handleClose]);
-
-  // ── Multi-file batch flow (gallery with multiple picks) ───────────────────
-  const handleFiles = useCallback(async (files: File[]) => {
-    if (!files.length) return;
-    setErrorMsg(null);
-    setPhase("uploading");
-    setProgress({ current: 0, total: files.length });
-
-    let failed = 0;
-    for (let i = 0; i < files.length; i++) {
-      setProgress({ current: i + 1, total: files.length });
-      const ok = await saveOneFile(files[i], existingCount + i);
-      if (!ok) failed++;
-    }
-
-    setProgress(null);
-    if (failed > 0) {
-      setErrorMsg(`${failed} photo${failed > 1 ? "s" : ""} could not be saved. Please try again.`);
-      setPhase("pick");
+    // Advance to next photo in queue
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < queue.length) {
+      setPhotoIndex(nextIndex);
+      handleFile(queue[nextIndex]);
     } else {
       handleClose();
     }
-  }, [saveOneFile, existingCount, handleClose]);
+  }, [selected, cleanedBlob, originalBlob, saveChosenBlob, existingCount, handleFile, handleClose]);
 
+  // ── Kick off the queue when files are picked ──────────────────────────────
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
-    // Single file → comparison preview flow
-    // Multiple files → batch upload (no comparison)
-    if (files.length === 1) {
-      handleFile(files[0]);
-    } else {
-      handleFiles(files);
-    }
+    setPendingFiles(files);
+    setPhotoIndex(0);
+    handleFile(files[0]);
     e.target.value = "";
   };
 
   if (!open) return null;
 
-  const label = CATEGORY_LABELS[category];
+  const label       = CATEGORY_LABELS[category];
+  const isMulti     = pendingFiles.length > 1;
+  const displayIdx  = photoIndex + 1;
 
   return (
     <motion.div
@@ -340,9 +302,16 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
       {/* Header */}
       <div className="flex items-center justify-between px-4 bg-white border-b-2 border-black flex-shrink-0"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))", paddingBottom: "0.75rem" }}>
-        <h2 className="font-display font-bold text-xl uppercase tracking-tight">
-          {phase === "preview" ? `Choose Version` : `Add ${label}`}
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-display font-bold text-xl uppercase tracking-tight">
+            {phase === "preview" ? "Choose Version" : `Add ${label}`}
+          </h2>
+          {phase === "preview" && isMulti && (
+            <span className="text-xs font-bold text-black/40 border border-black/20 rounded-full px-2 py-0.5">
+              {displayIdx} / {pendingFiles.length}
+            </span>
+          )}
+        </div>
         {phase === "pick" && (
           <button
             onClick={handleClose}
@@ -367,7 +336,6 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </p>
             )}
 
-            {/* Two big action buttons */}
             <div className="flex gap-3">
               <button
                 onClick={() => cameraInputRef.current?.click()}
@@ -398,7 +366,6 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </button>
             </div>
 
-            {/* What to add */}
             {CATEGORY_EXAMPLES[category] && (
               <div className="border-2 border-black rounded-2xl bg-white p-4
                               shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
@@ -411,7 +378,6 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </div>
             )}
 
-            {/* Photo tips */}
             <div className="border-2 border-black rounded-2xl bg-white p-4
                             shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
               <p className="font-display font-bold text-sm uppercase tracking-tight mb-3 flex items-center gap-2">
@@ -432,7 +398,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
           </div>
         )}
 
-        {/* ── ENCODING — full-screen spinner, shown instantly after photo is picked ── */}
+        {/* ── ENCODING — full-screen spinner shown instantly after photo is picked ── */}
         {phase === "encoding" && (
           <div style={{ flex: 1, display: "flex", flexDirection: "column",
                         alignItems: "center", justifyContent: "center", gap: 20, padding: 24 }}>
@@ -459,33 +425,27 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
 
             <p style={{ textAlign: "center", fontWeight: "bold", fontSize: 11,
                         textTransform: "uppercase", letterSpacing: 2, opacity: 0.4, margin: 0 }}>
-              {bgProcessing ? "Removing background… this may take a moment" : bgFailed ? "Background removal unavailable" : "Tap to choose"}
+              {bgProcessing
+                ? "Removing background… this may take a moment"
+                : bgFailed
+                ? "Background removal unavailable"
+                : "Tap to choose"}
             </p>
 
-            {/* Side-by-side cards */}
             <div style={{ display: "flex", gap: 12 }}>
-
               {/* Original */}
               <button
                 onClick={() => setSelected("original")}
                 style={{
-                  flex: 1,
-                  opacity: selected === "original" ? 1 : 0.55,
+                  flex: 1, opacity: selected === "original" ? 1 : 0.55,
                   border: selected === "original" ? "4px solid black" : "4px solid rgba(0,0,0,0.15)",
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  background: "none",
-                  padding: 0,
-                  cursor: "pointer",
-                  transition: "opacity 0.15s, border-color 0.15s",
+                  borderRadius: 16, overflow: "hidden", background: "none", padding: 0,
+                  cursor: "pointer", transition: "opacity 0.15s, border-color 0.15s",
                 }}
               >
                 <div style={{ background: "#111", minHeight: 176, position: "relative" }}>
-                  <img
-                    src={originalUrl!}
-                    alt="Original"
-                    style={{ width: "100%", objectFit: "contain", maxHeight: 176, display: "block" }}
-                  />
+                  <img src={originalUrl!} alt="Original"
+                       style={{ width: "100%", objectFit: "contain", maxHeight: 176, display: "block" }} />
                   {selected === "original" && (
                     <div style={{ position: "absolute", top: 6, right: 6, width: 22, height: 22,
                                   borderRadius: "50%", background: "black",
@@ -508,30 +468,20 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
                   flex: 1,
                   opacity: selected === "cleaned" && cleanedUrl ? 1 : 0.55,
                   border: selected === "cleaned" && cleanedUrl ? "4px solid black" : "4px solid rgba(0,0,0,0.15)",
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  background: "none",
-                  padding: 0,
+                  borderRadius: 16, overflow: "hidden", background: "none", padding: 0,
                   cursor: cleanedUrl ? "pointer" : "default",
                   transition: "opacity 0.15s, border-color 0.15s",
                 }}
               >
-                {/* Checkerboard reveals transparency */}
                 <div style={{
                   background: "repeating-conic-gradient(#d1d5db 0% 25%, white 0% 50%) 0 0 / 12px 12px",
-                  minHeight: 176,
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  minHeight: 176, position: "relative",
+                  display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   {cleanedUrl ? (
                     <>
-                      <img
-                        src={cleanedUrl}
-                        alt="Background removed"
-                        style={{ width: "100%", objectFit: "contain", maxHeight: 176, display: "block" }}
-                      />
+                      <img src={cleanedUrl} alt="Background removed"
+                           style={{ width: "100%", objectFit: "contain", maxHeight: 176, display: "block" }} />
                       {selected === "cleaned" && (
                         <div style={{ position: "absolute", top: 6, right: 6, width: 22, height: 22,
                                       borderRadius: "50%", background: "black",
@@ -563,7 +513,14 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
             {/* Action row */}
             <div style={{ display: "flex", gap: 10 }}>
               <button
-                onClick={() => setPhase("pick")}
+                onClick={() => {
+                  // If there are queued photos, abandon this batch and return to pick
+                  bgGenRef.current += 1;
+                  setBgProcessing(false);
+                  setPendingFiles([]);
+                  setPhotoIndex(0);
+                  setPhase("pick");
+                }}
                 className="flex items-center justify-center gap-2 border-2 border-black rounded-xl
                            bg-white font-bold text-sm uppercase tracking-wide px-4 py-3
                            shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
@@ -574,16 +531,20 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </button>
 
               <button
-                onClick={handleSave}
+                onClick={() => handleSave(photoIndex, pendingFiles)}
                 disabled={bgProcessing}
                 className="flex-1 flex items-center justify-center gap-2 border-2 border-black rounded-xl
                            bg-primary font-bold text-sm uppercase tracking-wide px-4 py-3
                            shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
                            active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all
-                           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:translate-x-0 disabled:active:translate-y-0 disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                           disabled:opacity-40 disabled:cursor-not-allowed
+                           disabled:active:translate-x-0 disabled:active:translate-y-0
+                           disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
               >
                 {bgProcessing ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
+                ) : isMulti && photoIndex + 1 < pendingFiles.length ? (
+                  <><Check className="w-4 h-4" /> Save &amp; Next</>
                 ) : (
                   <><Check className="w-4 h-4" /> Save to Wardrobe</>
                 )}
@@ -603,11 +564,11 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
             </div>
             <div className="text-center">
               <p className="font-display font-bold text-2xl uppercase tracking-tight">Saving…</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {progress && progress.total > 1
-                  ? `Photo ${progress.current} of ${progress.total}`
-                  : "Adding to your wardrobe."}
-              </p>
+              {isMulti && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Photo {displayIdx} of {pendingFiles.length}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -615,24 +576,10 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
       </div>
 
       {/* Hidden file inputs */}
-      {/* Camera — opens native camera on mobile */}
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={handleInputChange}
-      />
-      {/* Gallery — opens photo library / file picker (multiple selection) */}
-      <input
-        ref={galleryInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={handleInputChange}
-      />
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment"
+             className="hidden" onChange={handleInputChange} />
+      <input ref={galleryInputRef} type="file" accept="image/*" multiple
+             className="hidden" onChange={handleInputChange} />
     </motion.div>
   );
 }

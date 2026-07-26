@@ -3,11 +3,12 @@
  * Every field is optional and editable. A "Save" button appears only when
  * the form is dirty. Delete is always available.
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Heart, Trash2, Save, ChevronDown,
+  X, Heart, Trash2, Save, ChevronDown, Loader2, Sparkles,
 } from "lucide-react";
+import { removeBackground, compressPng } from "@/lib/backgroundRemoval";
 import {
   type ClothingItem,
   type ClothingItemUpdateCategory,
@@ -150,10 +151,39 @@ function isDirty(form: FormState, item: ClothingItem): boolean {
 export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetProps) {
   const [form, setForm]           = useState<FormState | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [bgRemoving, setBgRemoving] = useState(false);
+  const [bgError,    setBgError]    = useState<string | null>(null);
 
   const updateItem  = useUpdateClothingItem();
   const deleteItem  = useDeleteClothingItem();
   const queryClient = useQueryClient();
+
+  const handleRemoveBg = useCallback(async () => {
+    if (!item?.imageObjectPath || bgRemoving) return;
+    setBgRemoving(true);
+    setBgError(null);
+    try {
+      const resultDataUrl    = await removeBackground(item.imageObjectPath);
+      const compressedDataUrl = await compressPng(resultDataUrl);
+      await new Promise<void>((resolve, reject) => {
+        updateItem.mutate(
+          { id: item.id, data: { imageObjectPath: compressedDataUrl } },
+          {
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: getListClothingQueryKey() });
+              resolve();
+            },
+            onError: reject,
+          },
+        );
+      });
+    } catch (err) {
+      console.warn("Remove background failed:", err);
+      setBgError("Could not remove background. Try again.");
+    } finally {
+      setBgRemoving(false);
+    }
+  }, [item, bgRemoving, updateItem, queryClient]);
 
   // Reset form whenever item changes
   useEffect(() => {
@@ -272,18 +302,48 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
 
       {/* ── Photo ── */}
       {item.imageObjectPath && (
-        <div
-          className="w-full h-52 flex-shrink-0 border-b-2 border-black"
-          style={{
-            backgroundImage: "repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%)",
-            backgroundSize: "16px 16px",
-          }}
-        >
-          <img
-            src={getImageUrl(item.imageObjectPath)!}
-            alt={item.name}
-            className="w-full h-full object-contain"
-          />
+        <div className="flex-shrink-0 border-b-2 border-black">
+          <div
+            className="w-full h-52"
+            style={{
+              backgroundImage: "repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%)",
+              backgroundSize: "16px 16px",
+            }}
+          >
+            <img
+              src={getImageUrl(item.imageObjectPath)!}
+              alt={item.name}
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          {/* Remove Background button */}
+          <div className="px-4 py-3 bg-white border-t border-black/10 flex flex-col gap-1.5">
+            <button
+              onClick={handleRemoveBg}
+              disabled={bgRemoving}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4
+                         border-2 border-black rounded-xl font-bold text-sm uppercase tracking-wide
+                         bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                         active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
+                         transition-all disabled:opacity-40 disabled:cursor-not-allowed
+                         disabled:active:translate-x-0 disabled:active:translate-y-0
+                         disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+            >
+              {bgRemoving
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Removing background…</>
+                : <><Sparkles className="w-4 h-4" /> Remove Background</>
+              }
+            </button>
+            {bgError && (
+              <p className="text-xs text-center text-red-600 font-medium">{bgError}</p>
+            )}
+            {!bgError && (
+              <p className="text-[10px] text-center text-black/35 leading-snug">
+                First run downloads ~15 MB model · processed on-device
+              </p>
+            )}
+          </div>
         </div>
       )}
 
