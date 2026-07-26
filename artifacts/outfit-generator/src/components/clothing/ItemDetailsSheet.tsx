@@ -162,11 +162,12 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
   // ── "Clean Up Photo" state ────────────────────────────────────────────────
   // displayImagePath starts as item.imageObjectPath, then is updated locally
   // the instant the user confirms — before the DB write completes.
-  const [displayImagePath, setDisplayImagePath]   = useState<string | null>(null);
-  const [bgPhase,    setBgPhase]   = useState<"idle" | "processing" | "compare">("idle");
-  const [cleanedUrl, setCleanedUrl] = useState<string | null>(null);
-  const [bgError,    setBgError]    = useState<string | null>(null);
-  const [compareSelected, setCompareSelected] = useState<"original" | "cleaned">("cleaned");
+  const [displayImagePath, setDisplayImagePath] = useState<string | null>(null);
+  const [compareOpen,    setCompareOpen]    = useState(false);
+  const [cleanedLoading, setCleanedLoading] = useState(false);  // removal in-flight
+  const [cleanedUrl,     setCleanedUrl]     = useState<string | null>(null);
+  const [bgError,        setBgError]        = useState<string | null>(null);
+  const [compareSelected, setCompareSelected] = useState<"original" | "cleaned">("original");
   const bgGenRef = useRef(0);  // guards stale async results
 
   const updateItem  = useUpdateClothingItem();
@@ -180,35 +181,50 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
       setDisplayImagePath(item.imageObjectPath ?? null);
     }
     setShowDeleteConfirm(false);
-    setBgPhase("idle");
+    setCompareOpen(false);
+    setCleanedLoading(false);
     setCleanedUrl(null);
     setBgError(null);
-    setCompareSelected("cleaned");
+    setCompareSelected("original");
     bgGenRef.current += 1;
   }, [item?.id]);
 
-  // Start on-device background removal → open compare overlay when done
+  // Open the overlay immediately, then run removal in the background.
+  // The user can pick "Original" and confirm at any point without waiting.
   const handleCleanUpPhoto = useCallback(async () => {
-    if (!displayImagePath || bgPhase === "processing") return;
+    if (!displayImagePath || compareOpen) return;
     const myGen = ++bgGenRef.current;
-    setBgPhase("processing");
-    setBgError(null);
+    // Open overlay right away with Original pre-selected
+    setCompareOpen(true);
     setCleanedUrl(null);
-    setCompareSelected("cleaned");
+    setBgError(null);
+    setCompareSelected("original");
+    setCleanedLoading(true);
     try {
       const rawDataUrl        = await removeBackground(displayImagePath);
       if (bgGenRef.current !== myGen) return;
       const compressedDataUrl = await compressPng(rawDataUrl);
       if (bgGenRef.current !== myGen) return;
       setCleanedUrl(compressedDataUrl);
-      setBgPhase("compare");
+      // Auto-switch selection to Cleaned so the user sees the result
+      setCompareSelected("cleaned");
     } catch (err) {
       if (bgGenRef.current !== myGen) return;
       console.warn("Background removal failed:", err);
       setBgError("Could not remove background — please try again.");
-      setBgPhase("idle");
+    } finally {
+      if (bgGenRef.current === myGen) setCleanedLoading(false);
     }
-  }, [displayImagePath, bgPhase]);
+  }, [displayImagePath, compareOpen]);
+
+  const handleCancelCompare = useCallback(() => {
+    bgGenRef.current += 1;   // abort any in-flight removal
+    setCompareOpen(false);
+    setCleanedLoading(false);
+    setCleanedUrl(null);
+    setBgError(null);
+    setCompareSelected("original");
+  }, []);
 
   // Confirm selection from the compare overlay.
   // ① Update displayImagePath immediately (no DB-write delay → no photo flash).
@@ -217,9 +233,14 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
     const chosenUrl = chosen === "cleaned" && cleanedUrl ? cleanedUrl : displayImagePath;
     if (!chosenUrl || !item) return;
 
+    bgGenRef.current += 1;   // abort any still-running removal
+    setCleanedLoading(false);
+
     // ① Instant local update
     setDisplayImagePath(chosenUrl);
-    setBgPhase("idle");
+    setCompareOpen(false);
+    setCleanedUrl(null);
+    setCompareSelected("original");
 
     // ② Background DB write
     updateItem.mutate(
@@ -364,7 +385,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
           <div className="px-4 py-3 bg-white border-t border-black/10 flex flex-col gap-1.5">
             <button
               onClick={handleCleanUpPhoto}
-              disabled={bgPhase === "processing"}
+              disabled={compareOpen}
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4
                          border-2 border-black rounded-xl font-bold text-sm uppercase tracking-wide
                          bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
@@ -373,38 +394,27 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                          disabled:active:translate-x-0 disabled:active:translate-y-0
                          disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
             >
-              {bgPhase === "processing"
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> Analysing photo…</>
-                : <><Sparkles className="w-4 h-4" /> Clean Up Photo</>
-              }
+              <Sparkles className="w-4 h-4" /> Clean Up Photo
             </button>
-            {bgError && (
-              <p className="text-xs text-center text-red-600 font-medium">{bgError}</p>
-            )}
-            {!bgError && bgPhase !== "processing" && (
-              <p className="text-[10px] text-center text-black/35 leading-snug">
-                First run downloads ~15 MB model · processed on-device
-              </p>
-            )}
-            {bgPhase === "processing" && (
-              <p className="text-[10px] text-center text-black/35 leading-snug">
-                This can take up to a minute on first use
-              </p>
-            )}
+            <p className="text-[10px] text-center text-black/35 leading-snug">
+              First run downloads ~15 MB model · processed on-device
+            </p>
           </div>
         </div>
       )}
 
       {/* ── BgCompareOverlay — slides up above the detail sheet ── */}
       <AnimatePresence>
-        {bgPhase === "compare" && cleanedUrl && displayImagePath && (
+        {compareOpen && displayImagePath && (
           <BgCompareOverlay
             originalUrl={displayImagePath}
             cleanedUrl={cleanedUrl}
+            cleanedLoading={cleanedLoading}
+            bgError={bgError}
             selected={compareSelected}
             onSelect={setCompareSelected}
             onConfirm={handleConfirmChoice}
-            onCancel={() => { setBgPhase("idle"); setCompareSelected("cleaned"); }}
+            onCancel={handleCancelCompare}
           />
         )}
       </AnimatePresence>
@@ -539,19 +549,34 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
 // Shows Original | Cleaned side-by-side. User taps to select, then confirms.
 
 interface BgCompareOverlayProps {
-  originalUrl:  string;
-  cleanedUrl:   string;
-  selected:     "original" | "cleaned";
-  onSelect:     (v: "original" | "cleaned") => void;
-  onConfirm:    (chosen: "original" | "cleaned") => void;
-  onCancel:     () => void;
+  originalUrl:    string;
+  cleanedUrl:     string | null;   // null while removal is still running
+  cleanedLoading: boolean;
+  bgError:        string | null;
+  selected:       "original" | "cleaned";
+  onSelect:       (v: "original" | "cleaned") => void;
+  onConfirm:      (chosen: "original" | "cleaned") => void;
+  onCancel:       () => void;
 }
 
 function BgCompareOverlay({
-  originalUrl, cleanedUrl, selected, onSelect, onConfirm, onCancel,
+  originalUrl, cleanedUrl, cleanedLoading, bgError,
+  selected, onSelect, onConfirm, onCancel,
 }: BgCompareOverlayProps) {
-  // Primary colour used by the app — matches Tailwind `primary` token.
-  const PRIMARY = "hsl(340, 82%, 64%)"; // pink-ish brand colour
+  const PRIMARY = "hsl(340, 82%, 64%)";
+
+  // "Cleaned" can only be selected once the result is ready
+  const canSelectCleaned = !cleanedLoading && !!cleanedUrl;
+
+  // Confirm is always available — if Cleaned isn't ready yet, confirm saves Original
+  const effectiveSelected: "original" | "cleaned" =
+    selected === "cleaned" && !canSelectCleaned ? "original" : selected;
+
+  const hint = cleanedLoading
+    ? "Removing background… select Original to skip"
+    : bgError
+    ? bgError
+    : "Tap a version to select it";
 
   return (
     <motion.div
@@ -579,26 +604,28 @@ function BgCompareOverlay({
         </button>
       </div>
 
-      {/* Instruction */}
-      <p className="text-center text-[11px] font-bold uppercase tracking-widest text-black/40 pt-5 pb-1 px-4">
-        Tap to choose a version
+      {/* Hint line */}
+      <p
+        className="text-center text-[11px] font-bold uppercase tracking-widest pt-5 pb-1 px-4"
+        style={{ color: bgError ? "#dc2626" : "rgba(0,0,0,0.4)" }}
+      >
+        {hint}
       </p>
 
       {/* Side-by-side comparison */}
       <div className="flex gap-3 px-4 flex-1 overflow-hidden" style={{ paddingBottom: 8 }}>
 
-        {/* Original */}
+        {/* ── Original ── always ready and tappable */}
         <button
           onClick={() => onSelect("original")}
           className="flex-1 flex flex-col rounded-2xl overflow-hidden border-4 transition-all"
           style={{
-            borderColor: selected === "original" ? PRIMARY : "rgba(0,0,0,0.12)",
+            borderColor: effectiveSelected === "original" ? PRIMARY : "rgba(0,0,0,0.12)",
             background: "none",
             padding: 0,
             cursor: "pointer",
           }}
         >
-          {/* Image area — dark bg so light clothing is visible */}
           <div
             className="relative flex-1 bg-[#111] flex items-center justify-center overflow-hidden"
             style={{ minHeight: 0 }}
@@ -609,7 +636,7 @@ function BgCompareOverlay({
               className="w-full h-full object-contain"
               style={{ maxHeight: "100%" }}
             />
-            {selected === "original" && (
+            {effectiveSelected === "original" && (
               <div
                 className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
                 style={{ background: PRIMARY }}
@@ -618,76 +645,92 @@ function BgCompareOverlay({
               </div>
             )}
           </div>
-          {/* Label */}
           <div
-            className="py-2.5 text-center font-bold text-[11px] uppercase tracking-widest bg-white border-t-2 border-black/10 flex-shrink-0"
-            style={{ color: selected === "original" ? PRIMARY : "rgba(0,0,0,0.45)" }}
+            className="py-2.5 text-center font-bold text-[11px] uppercase tracking-widest
+                       bg-white border-t-2 border-black/10 flex-shrink-0"
+            style={{ color: effectiveSelected === "original" ? PRIMARY : "rgba(0,0,0,0.45)" }}
           >
             Original
           </div>
         </button>
 
-        {/* Cleaned */}
+        {/* ── Cleaned — spinner until ready; tappable once ready ── */}
         <button
-          onClick={() => onSelect("cleaned")}
+          onClick={() => canSelectCleaned && onSelect("cleaned")}
           className="flex-1 flex flex-col rounded-2xl overflow-hidden border-4 transition-all"
           style={{
-            borderColor: selected === "cleaned" ? PRIMARY : "rgba(0,0,0,0.12)",
+            borderColor: effectiveSelected === "cleaned" ? PRIMARY : "rgba(0,0,0,0.12)",
             background: "none",
             padding: 0,
-            cursor: "pointer",
+            cursor: canSelectCleaned ? "pointer" : "default",
+            opacity: bgError ? 0.45 : 1,
           }}
         >
-          {/* Checkerboard bg to show transparency */}
           <div
             className="relative flex-1 flex items-center justify-center overflow-hidden"
             style={{
               minHeight: 0,
-              background:
-                "repeating-conic-gradient(#d1d5db 0% 25%, white 0% 50%) 0 0 / 14px 14px",
+              background: "repeating-conic-gradient(#d1d5db 0% 25%, white 0% 50%) 0 0 / 14px 14px",
             }}
           >
-            <img
-              src={cleanedUrl}
-              alt="Background removed"
-              className="w-full h-full object-contain"
-              style={{ maxHeight: "100%" }}
-            />
-            {selected === "cleaned" && (
-              <div
-                className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
-                style={{ background: PRIMARY }}
-              >
-                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+            {cleanedUrl ? (
+              <>
+                <img
+                  src={cleanedUrl}
+                  alt="Background removed"
+                  className="w-full h-full object-contain"
+                  style={{ maxHeight: "100%" }}
+                />
+                {effectiveSelected === "cleaned" && (
+                  <div
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                    style={{ background: PRIMARY }}
+                  >
+                    <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                  </div>
+                )}
+              </>
+            ) : bgError ? (
+              <p className="text-[10px] font-bold uppercase text-center text-black/40 px-2">
+                Failed
+              </p>
+            ) : (
+              /* Loading spinner — shown while removal runs in background */
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="w-8 h-8 animate-spin" style={{ opacity: 0.35 }} />
+                <p className="text-[9px] font-bold uppercase tracking-widest text-center"
+                   style={{ opacity: 0.35 }}>
+                  Processing…
+                </p>
               </div>
             )}
           </div>
-          {/* Label */}
           <div
-            className="py-2.5 text-center font-bold text-[11px] uppercase tracking-widest bg-white border-t-2 border-black/10 flex-shrink-0"
-            style={{ color: selected === "cleaned" ? PRIMARY : "rgba(0,0,0,0.45)" }}
+            className="py-2.5 text-center font-bold text-[11px] uppercase tracking-widest
+                       bg-white border-t-2 border-black/10 flex-shrink-0"
+            style={{ color: effectiveSelected === "cleaned" ? PRIMARY : "rgba(0,0,0,0.45)" }}
           >
-            Cleaned ✨
+            {cleanedLoading ? "Working…" : "Cleaned ✨"}
           </div>
         </button>
 
       </div>
 
-      {/* Footer actions */}
+      {/* Footer */}
       <div
         className="px-4 py-4 bg-white border-t-2 border-black flex-shrink-0 flex flex-col gap-2"
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
         <button
-          onClick={() => onConfirm(selected)}
-          className="w-full py-3.5 rounded-xl border-2 border-black font-bold text-sm uppercase tracking-wide
-                     shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+          onClick={() => onConfirm(effectiveSelected)}
+          className="w-full py-3.5 rounded-xl border-2 border-black font-bold text-sm uppercase
+                     tracking-wide shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                      active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all
                      flex items-center justify-center gap-2"
           style={{ background: PRIMARY, color: "white" }}
         >
           <Check className="w-4 h-4" />
-          {selected === "cleaned" ? "Save Cleaned Version" : "Keep Original"}
+          {effectiveSelected === "cleaned" ? "Save Cleaned Version" : "Keep Original"}
         </button>
 
         <button
