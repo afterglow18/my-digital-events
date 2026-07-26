@@ -1,12 +1,59 @@
-import { removeBackground as imglyRemoveBackground } from "@imgly/background-removal";
+/**
+ * backgroundRemoval.ts
+ *
+ * Wraps @imgly/background-removal with three fixes needed for iOS Safari / WKWebView:
+ *
+ * 1. Object.defineProperty — locks ort.env.wasm.proxy = true so imgly's internal
+ *    `proxy = false` write is silently ignored. ONNX Runtime then runs inference in
+ *    a sub-worker, freeing the main JS thread (no UI freeze).
+ *
+ * 2. numThreads = 1 — iOS Safari has no SharedArrayBuffer, so WASM multithreading
+ *    causes a silent crash. Single-threaded avoids it.
+ *
+ * 3. Dynamic import() — importing onnxruntime-web at module parse time triggers
+ *    Vite's dep pre-bundling mid-session, causing a page reload that corrupts React's
+ *    internal dispatcher. Importing it dynamically (inside the function, on first use)
+ *    avoids that entirely.
+ */
+
+// Run once before the first removeBackground() call.
+let ortConfigured = false;
+async function configureOrt() {
+  if (ortConfigured) return;
+  ortConfigured = true;
+
+  // @ts-ignore — types exist at onnxruntime-web/types.d.ts but aren't reachable
+  // via the package's exports field; this is a known onnxruntime-web packaging quirk.
+  const ort = await import("onnxruntime-web");
+
+  // Lock proxy = true. imgly unconditionally writes `proxy = false` just before
+  // creating an inference session (it only enables the proxy when WebGPU is
+  // available, which it isn't on iOS Safari). defineProperty with a no-op setter
+  // silently blocks that write so the value stays true.
+  Object.defineProperty(ort.env.wasm, "proxy", {
+    get: () => true,
+    set: () => {},      // blocks imgly from resetting it to false
+    configurable: true,
+  });
+
+  // Single-threaded: iOS Safari lacks SharedArrayBuffer, which WASM multithreading
+  // requires. Any value > 1 causes a silent crash.
+  ort.env.wasm.numThreads = 1;
+}
 
 /**
  * Remove the background from a JPEG/PNG base64 data-URL.
  * Returns a PNG data-URL with transparent background.
- * On first ever call downloads ~15 MB ONNX model from imgly CDN (cached after that).
+ * On first call downloads ~15 MB ONNX model from the imgly CDN (cached after that).
  * Throws on network error or unreadable image — callers should catch and fall back.
+ * Inference runs in a Web Worker so the main thread stays responsive.
  */
 export async function removeBackground(dataUrl: string): Promise<string> {
+  await configureOrt();
+
+  // Dynamic import — deferred until first use to avoid Vite pre-bundling on load.
+  const { removeBackground: imglyRemoveBackground } = await import("@imgly/background-removal");
+
   const sourceBlob = await dataUrlToBlob(dataUrl);
   const resultBlob = await imglyRemoveBackground(sourceBlob, {
     model: "isnet_fp16", // valid: "isnet" | "isnet_fp16" | "isnet_quint8" — NOT "small"/"medium"
