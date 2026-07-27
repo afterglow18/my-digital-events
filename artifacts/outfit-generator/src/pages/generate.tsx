@@ -243,12 +243,12 @@ export default function GeneratePage() {
         width: "100%",
         height: `calc(100dvh - ${NAV_H}px)`,
         overflow: "hidden",
-        background: "#C8B9A2",
+        background: "#D9C9A8",
       }}
     >
       {/* ── Background image — object-fit:cover avoids WebKit negative-left clipping bug ── */}
       <img
-        src="/suitcase-open-bg.jpg"
+        src="/shelf-bg.png"
         alt="My Digital Events"
         style={{
           position: "absolute",
