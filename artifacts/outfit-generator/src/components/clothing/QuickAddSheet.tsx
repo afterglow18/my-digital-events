@@ -532,7 +532,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
 
               <button
                 onClick={() => handleSave(photoIndex, pendingFiles)}
-                disabled={bgProcessing}
+                disabled={selected === "cleaned" && !cleanedUrl}
                 className="flex-1 flex items-center justify-center gap-2 border-2 border-black rounded-xl
                            bg-primary font-bold text-sm uppercase tracking-wide px-4 py-3
                            shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
@@ -541,7 +541,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
                            disabled:active:translate-x-0 disabled:active:translate-y-0
                            disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
               >
-                {bgProcessing ? (
+                {selected === "cleaned" && !cleanedUrl ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
                 ) : isMulti && photoIndex + 1 < pendingFiles.length ? (
                   <><Check className="w-4 h-4" /> Save &amp; Next</>
