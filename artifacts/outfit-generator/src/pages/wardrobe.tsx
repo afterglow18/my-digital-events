@@ -53,9 +53,6 @@ const ROWS: { key: RowKey; btnLabel: string }[] = [
 // ── Image constants ───────────────────────────────────────────────────────────
 const IMG_W = 1024;
 const IMG_H = 1536;
-// NAV_H is 0 on iPad (sidebar nav) and 90 on phone (bottom nav)
-// eslint-disable-next-line react-hooks/rules-of-hooks
-const NAV_H = useNavHeight();
 
 // ── Landmark fractions (calibrated for suitcase-open-bg.jpg 989×1536) ─────────
 // Real-photo suitcase, shot from above.
@@ -110,6 +107,7 @@ const pY = (ir: ImgRect, f: number) => ir.top    + ir.height * f;
 export default function WardrobePage() {
   const containerRef = useRef<HTMLDivElement>(null!);
   const ir = useImageRect(containerRef);
+  const NAV_H = useNavHeight();
 
   const rowRefs: Record<RowKey, RefObject<ClosetRowHandle | null>> = {
     outfits:    useRef<ClosetRowHandle | null>(null),

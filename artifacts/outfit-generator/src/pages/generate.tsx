@@ -26,9 +26,6 @@ import { useNavHeight } from "@/hooks/useNavHeight";
 // ── Layout constants (same as wardrobe.tsx) ───────────────────────────────────
 const IMG_W = 1024;
 const IMG_H = 1536;
-// NAV_H is 0 on iPad (sidebar nav) and 90 on phone (bottom nav)
-// eslint-disable-next-line react-hooks/rules-of-hooks
-const NAV_H = useNavHeight();
 const PINK  = "#E8D4B0";
 
 const LM = {
@@ -91,6 +88,7 @@ export default function GeneratePage() {
   const containerRef = useRef<HTMLDivElement>(null!);
   const ir    = useImageRect(containerRef);
   const ready = ir.width > 0;
+  const NAV_H = useNavHeight();
 
   const rowRefs: Record<RowKey, RefObject<ClosetRowHandle | null>> = {
     outfits:    useRef<ClosetRowHandle | null>(null),

@@ -155,6 +155,37 @@ function isDirty(form: FormState, item: ClothingItem): boolean {
   );
 }
 
+/** Samples a PNG data-URL and returns true if any pixel has alpha < 255. */
+async function detectTransparency(dataUrl: string): Promise<boolean> {
+  // Non-PNG formats have no alpha channel — always opaque
+  if (!dataUrl.startsWith("data:image/png")) return false;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        // Sample a downscaled version for speed (max 64×64)
+        const scale = Math.min(1, 64 / Math.max(img.naturalWidth, img.naturalHeight));
+        canvas.width  = Math.max(1, Math.round(img.naturalWidth  * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        // data is [R, G, B, A, R, G, B, A, …]
+        for (let i = 3; i < data.length; i += 4) {
+          if (data[i] < 255) { resolve(true); return; }
+        }
+        resolve(false);
+      } catch {
+        // Canvas tainted or other error — assume opaque so button stays available
+        resolve(false);
+      }
+    };
+    img.onerror = () => resolve(false);
+    img.src = dataUrl;
+  });
+}
+
 export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetProps) {
   const [form, setForm]           = useState<FormState | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -163,6 +194,8 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
   // displayImagePath starts as item.imageObjectPath, then is updated locally
   // the instant the user confirms — before the DB write completes.
   const [displayImagePath, setDisplayImagePath] = useState<string | null>(null);
+  // null = unknown (checking), true = has transparency (already cleaned), false = opaque
+  const [imageHasTransparency, setImageHasTransparency] = useState<boolean | null>(null);
   const [compareOpen,    setCompareOpen]    = useState(false);
   const [cleanedLoading, setCleanedLoading] = useState(false);  // removal in-flight
   const [cleanedUrl,     setCleanedUrl]     = useState<string | null>(null);
@@ -179,6 +212,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
     if (item) {
       setForm(toForm(item));
       setDisplayImagePath(item.imageObjectPath ?? null);
+      setImageHasTransparency(null);  // will be re-detected below
     }
     setShowDeleteConfirm(false);
     setCompareOpen(false);
@@ -188,6 +222,17 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
     setCompareSelected("original");
     bgGenRef.current += 1;
   }, [item?.id]);
+
+  // Detect transparency whenever the displayed image changes
+  useEffect(() => {
+    if (!displayImagePath) return;
+    setImageHasTransparency(null);
+    let cancelled = false;
+    detectTransparency(displayImagePath).then((result) => {
+      if (!cancelled) setImageHasTransparency(result);
+    });
+    return () => { cancelled = true; };
+  }, [displayImagePath]);
 
   // Open the overlay immediately, then run removal in the background.
   // The user can pick "Original" and confirm at any point without waiting.
@@ -238,6 +283,10 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
 
     // ① Instant local update
     setDisplayImagePath(chosenUrl);
+    // If user chose cleaned, the new PNG has transparency → hide button immediately.
+    // If user chose original, keep the current transparency state (re-detection fires
+    // via the displayImagePath useEffect, but result will be the same as before).
+    if (chosen === "cleaned") setImageHasTransparency(true);
     setCompareOpen(false);
     setCleanedUrl(null);
     setCompareSelected("original");
@@ -381,12 +430,13 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
             />
           </div>
 
-          {/* Clean Up Photo button — hidden once the photo is already a cleaned PNG */}
-          {!displayImagePath.startsWith("data:image/png") && (
+          {/* Remove Background button — shown when image has no transparency yet.
+              imageHasTransparency === null means still detecting; hide while unknown. */}
+          {imageHasTransparency === false && (
             <div className="px-4 py-3 bg-white border-t border-black/10 flex flex-col gap-1.5">
               <button
                 onClick={handleCleanUpPhoto}
-                disabled={compareOpen}
+                disabled={compareOpen || cleanedLoading}
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4
                            border-2 border-black rounded-xl font-bold text-sm uppercase tracking-wide
                            bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
@@ -395,7 +445,10 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                            disabled:active:translate-x-0 disabled:active:translate-y-0
                            disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
               >
-                <Sparkles className="w-4 h-4" /> Clean Up Photo
+                {cleanedLoading && !compareOpen
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <Sparkles className="w-4 h-4" />}
+                Remove Background
               </button>
               <p className="text-[10px] text-center text-black/35 leading-snug">
                 First run downloads ~15 MB model · processed on-device
