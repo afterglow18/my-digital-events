@@ -381,25 +381,27 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
             />
           </div>
 
-          {/* Clean Up Photo button */}
-          <div className="px-4 py-3 bg-white border-t border-black/10 flex flex-col gap-1.5">
-            <button
-              onClick={handleCleanUpPhoto}
-              disabled={compareOpen}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4
-                         border-2 border-black rounded-xl font-bold text-sm uppercase tracking-wide
-                         bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-                         active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
-                         transition-all disabled:opacity-40 disabled:cursor-not-allowed
-                         disabled:active:translate-x-0 disabled:active:translate-y-0
-                         disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
-            >
-              <Sparkles className="w-4 h-4" /> Clean Up Photo
-            </button>
-            <p className="text-[10px] text-center text-black/35 leading-snug">
-              First run downloads ~15 MB model · processed on-device
-            </p>
-          </div>
+          {/* Clean Up Photo button — hidden once the photo is already a cleaned PNG */}
+          {!displayImagePath.startsWith("data:image/png") && (
+            <div className="px-4 py-3 bg-white border-t border-black/10 flex flex-col gap-1.5">
+              <button
+                onClick={handleCleanUpPhoto}
+                disabled={compareOpen}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4
+                           border-2 border-black rounded-xl font-bold text-sm uppercase tracking-wide
+                           bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                           active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
+                           transition-all disabled:opacity-40 disabled:cursor-not-allowed
+                           disabled:active:translate-x-0 disabled:active:translate-y-0
+                           disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <Sparkles className="w-4 h-4" /> Clean Up Photo
+              </button>
+              <p className="text-[10px] text-center text-black/35 leading-snug">
+                First run downloads ~15 MB model · processed on-device
+              </p>
+            </div>
+          )}
         </div>
       )}
 
