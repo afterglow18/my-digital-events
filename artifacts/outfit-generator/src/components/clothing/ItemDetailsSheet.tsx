@@ -49,7 +49,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+      <label className="text-[10px] font-bold uppercase tracking-widest text-[#3A2210]/50">
         {label}
       </label>
       <input
@@ -57,9 +57,9 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? label}
-        className="w-full border-2 border-black rounded-lg px-3 py-2 text-sm font-medium
-                   bg-white focus:outline-none focus:ring-2 focus:ring-primary
-                   placeholder:font-normal placeholder:text-black/25"
+        className="w-full border border-[#3A2210]/25 rounded-xl px-3 py-2 text-sm font-medium
+                   bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8894E]/40
+                   placeholder:font-normal placeholder:text-[#3A2210]/30"
       />
     </div>
   );
@@ -78,15 +78,15 @@ function SelectField({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+      <label className="text-[10px] font-bold uppercase tracking-widest text-[#3A2210]/50">
         {label}
       </label>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none border-2 border-black rounded-lg px-3 py-2 pr-8
-                     text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-primary
+          className="w-full appearance-none border border-[#3A2210]/25 rounded-xl px-3 py-2 pr-8
+                     text-sm font-medium bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8894E]/40
                      cursor-pointer"
         >
           {options.map((o) => (
@@ -95,7 +95,7 @@ function SelectField({
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-black/40" />
+        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-[#3A2210]/40" />
       </div>
     </div>
   );
@@ -366,9 +366,9 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
     >
       {/* ── Header ── */}
       <div className="sticky top-0 z-10 flex items-center justify-between px-4
-                      bg-white border-b-2 border-black flex-shrink-0"
+                      bg-[#f9f4ee] border-b border-[#3A2210]/15 flex-shrink-0"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))", paddingBottom: "0.75rem" }}>
-        <h2 className="font-display font-bold text-xl uppercase tracking-tight">
+        <h2 className="font-display font-bold text-xl uppercase tracking-tight text-[#1a0800]">
           Item Details
         </h2>
         <div className="flex items-center gap-2">
@@ -388,33 +388,32 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                 }
               );
             }}
-            className={`w-9 h-9 border-2 border-black rounded-full flex items-center justify-center transition-all
+            className={`w-9 h-9 border rounded-full flex items-center justify-center transition-all
                         ${form.isFavorite
-                          ? "bg-red-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                          : "bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"}`}
+                          ? "bg-red-400 border-red-300 shadow-sm"
+                          : "bg-white/70 border-[#3A2210]/25 shadow-sm"}`}
             title="Favourite"
           >
             <Heart
               className="w-4 h-4"
               fill={form.isFavorite ? "white" : "none"}
-              stroke={form.isFavorite ? "white" : "currentColor"}
+              stroke={form.isFavorite ? "white" : "#3A2210"}
             />
           </button>
           {/* Close */}
           <button
             onClick={onClose}
-            className="w-9 h-9 border-2 border-black rounded-full flex items-center justify-center
-                       bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                       active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
+            className="w-9 h-9 border border-[#3A2210]/25 rounded-full flex items-center justify-center
+                       bg-white/70 shadow-sm active:opacity-60 transition-all"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 text-[#3A2210]" />
           </button>
         </div>
       </div>
 
       {/* ── Photo ── */}
       {displayImagePath && (
-        <div className="flex-shrink-0 border-b-2 border-black">
+        <div className="flex-shrink-0 border-b border-[#3A2210]/15">
           {/* Image preview — uses displayImagePath so it updates before the DB write finishes */}
           <div
             className="w-full h-52"
@@ -433,17 +432,15 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
           {/* Remove Background button — shown when image has no transparency yet.
               imageHasTransparency === null means still detecting; hide while unknown. */}
           {imageHasTransparency === false && (
-            <div className="px-4 py-3 bg-white border-t border-black/10 flex flex-col gap-1.5">
+            <div className="px-4 py-3 bg-[#f9f4ee] border-t border-[#3A2210]/10 flex flex-col gap-1.5">
               <button
                 onClick={handleCleanUpPhoto}
                 disabled={compareOpen || cleanedLoading}
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4
-                           border-2 border-black rounded-xl font-bold text-sm uppercase tracking-wide
-                           bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-                           active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
-                           transition-all disabled:opacity-40 disabled:cursor-not-allowed
-                           disabled:active:translate-x-0 disabled:active:translate-y-0
-                           disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                           border border-[#B8894E] rounded-xl font-bold text-sm uppercase tracking-wide
+                           bg-gradient-to-b from-[#E8D4A0] to-[#B8894E] text-[#3A2210]
+                           shadow-sm active:opacity-80
+                           transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {cleanedLoading && !compareOpen
                   ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -508,7 +505,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
 
         {/* Notes */}
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[#3A2210]/50">
             Notes
           </label>
           <textarea
@@ -516,9 +513,9 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
             onChange={(e) => patch("notes")(e.target.value)}
             placeholder="Anything worth remembering…"
             rows={3}
-            className="w-full border-2 border-black rounded-lg px-3 py-2 text-sm font-medium
-                       bg-white focus:outline-none focus:ring-2 focus:ring-primary resize-none
-                       placeholder:font-normal placeholder:text-black/25"
+            className="w-full border border-[#3A2210]/25 rounded-xl px-3 py-2 text-sm font-medium
+                       bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8894E]/40 resize-none
+                       placeholder:font-normal placeholder:text-[#3A2210]/30"
           />
         </div>
 
@@ -531,8 +528,8 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
             options={CATEGORY_OPTIONS}
           />
           <div className="flex flex-col gap-1 opacity-50 pointer-events-none">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">Times Worn</span>
-            <div className="border-2 border-black/20 rounded-lg px-3 py-2 text-sm font-medium bg-white/50">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#3A2210]/50">Times Worn</span>
+            <div className="border border-[#3A2210]/15 rounded-xl px-3 py-2 text-sm font-medium bg-white/50">
               {item.timesWorn ?? 0}
             </div>
           </div>
@@ -541,7 +538,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
       </div>
 
       {/* ── Footer actions ── */}
-      <div className="sticky bottom-0 px-4 py-4 bg-white border-t-2 border-black flex-shrink-0 flex flex-col gap-2">
+      <div className="sticky bottom-0 px-4 py-4 bg-[#f9f4ee] border-t border-[#3A2210]/15 flex-shrink-0 flex flex-col gap-2">
 
         {/* Save (only when dirty) */}
         <AnimatePresence>
@@ -552,7 +549,10 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
               exit={{ opacity: 0, y: 8 }}
               onClick={handleSave}
               disabled={updateItem.isPending}
-              className="w-full btn-brutalist py-3 rounded-xl flex items-center justify-center gap-2 text-sm"
+              className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm
+                         font-display font-bold uppercase tracking-wide text-[#3A2210]
+                         bg-gradient-to-b from-[#E8D4A0] to-[#B8894E] border border-[#B8894E]
+                         shadow-sm active:opacity-80 transition-all disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {updateItem.isPending ? "Saving…" : "Save Changes"}
@@ -565,8 +565,8 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
           <button
             onClick={() => setShowDeleteConfirm(true)}
             className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm
-                       font-bold uppercase border-2 border-black/20 text-black/35
-                       hover:border-red-500 hover:text-red-600 transition-all"
+                       font-bold uppercase border border-[#3A2210]/20 text-[#3A2210]/40
+                       hover:border-red-400 hover:text-red-500 transition-all"
           >
             <Trash2 className="w-4 h-4" />
             Delete from Wardrobe Forever
@@ -575,20 +575,18 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
           <div className="flex gap-2">
             <button
               onClick={() => setShowDeleteConfirm(false)}
-              className="flex-1 py-3 rounded-xl text-sm font-bold uppercase border-2 border-black bg-white
-                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                         active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
+              className="flex-1 py-3 rounded-xl text-sm font-bold uppercase
+                         border border-[#3A2210]/25 bg-white/70 text-[#3A2210]
+                         active:opacity-70 transition-all"
             >
               Cancel
             </button>
             <button
               onClick={handleDelete}
               disabled={deleteItem.isPending}
-              className="flex-1 py-3 rounded-xl text-sm font-bold uppercase border-2 border-red-600
-                         bg-red-500 text-white
-                         shadow-[2px_2px_0px_0px_rgba(185,28,28,1)]
-                         active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all
-                         disabled:opacity-50"
+              className="flex-1 py-3 rounded-xl text-sm font-bold uppercase
+                         border border-red-400 bg-red-500 text-white
+                         shadow-sm active:opacity-80 transition-all disabled:opacity-50"
             >
               {deleteItem.isPending ? "Deleting…" : "Yes, Delete Forever"}
             </button>
@@ -643,19 +641,18 @@ function BgCompareOverlay({
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 bg-white border-b-2 border-black flex-shrink-0"
+        className="flex items-center justify-between px-4 bg-[#f9f4ee] border-b border-[#3A2210]/15 flex-shrink-0"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))", paddingBottom: "0.75rem" }}
       >
-        <h2 className="font-display font-bold text-xl uppercase tracking-tight">
+        <h2 className="font-display font-bold text-xl uppercase tracking-tight text-[#1a0800]">
           Clean Up Photo
         </h2>
         <button
           onClick={onCancel}
-          className="w-9 h-9 border-2 border-black rounded-full flex items-center justify-center
-                     bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                     active:translate-y-0.5 active:translate-x-0.5 active:shadow-none transition-all"
+          className="w-9 h-9 border border-[#3A2210]/25 rounded-full flex items-center justify-center
+                     bg-white/70 shadow-sm active:opacity-60 transition-all"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4 text-[#3A2210]" />
         </button>
       </div>
 

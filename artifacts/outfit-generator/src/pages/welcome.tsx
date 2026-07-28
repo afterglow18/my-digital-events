@@ -222,10 +222,11 @@ export default function WelcomePage({ onEnter }: Props) {
           animate={{ opacity: isFloating ? 0 : 1 }}
           transition={{ duration: 0.25 }}
           style={{
-            fontSize: 11, fontWeight: 500,
+            fontFamily: "var(--font-display, sans-serif)",
+            fontSize: 11, fontWeight: 900,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "#000000",
+            color: "#1a0800",
             margin: 0, textAlign: "center",
           }}
         >
@@ -238,8 +239,9 @@ export default function WelcomePage({ onEnter }: Props) {
           transition={{ duration: 0.22 }}
           style={{
             fontFamily: "var(--font-display, sans-serif)",
-            fontWeight: 800, fontSize: 15,
-            letterSpacing: "0.03em",
+            fontWeight: 900, fontSize: 15,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
             color: "#3A2210",
             background: "linear-gradient(to bottom, #E8D4A0, #B8894E)",
             border: "1.5px solid #B8894E",
