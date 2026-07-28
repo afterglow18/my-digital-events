@@ -9,30 +9,27 @@ import { motion } from "framer-motion";
 interface Props { onEnter: () => void; }
 
 // ── Palette: gold, white, teal only ───────────────────────────────────────────
-const GOLD  = "#FFFFFF";
-const GOLD2 = "#FFFFFF";
-const WHITE = "#FFFFFF";
-const TEAL  = "#FFFFFF";
-const TEAL2 = "#FFFFFF";
+const GOLD  = "#D4A843";
+const GOLD2 = "#C49235";
+const WHITE = "#F4F0E8";
+const TEAL  = "#2CC4B0";
+const TEAL2 = "#1FA898";
 
-// ── 10 huge overlapping balloons — cover entire screen incl. button area ──────
+// ── 8 huge overlapping balloons — cover entire screen incl. button area ───────
 // size is the balloon HEIGHT in px (width = size × 0.65).
 // x / y are % of the viewport — negatives let balloons bleed off the edge.
 const BALLOONS = [
   // ── Top band ─────────────────────────────────────────────────────────────
-  { id: 0, x: -20, y:  -8, size: 430, color: GOLD,  floatDelay: 0.00, swayDur: 3.4, swayDelay: 0.0 },
-  { id: 1, x:  22, y: -12, size: 415, color: TEAL,  floatDelay: 0.12, swayDur: 3.1, swayDelay: 0.6 },
-  { id: 2, x:  60, y:  -6, size: 400, color: WHITE, floatDelay: 0.06, swayDur: 3.6, swayDelay: 1.1 },
+  { id: 0, x: -20, y:  -8, size: 430, color: GOLD,  floatDelay: 0.00 },
+  { id: 1, x:  22, y: -12, size: 415, color: TEAL,  floatDelay: 0.12 },
+  { id: 2, x:  60, y:  -6, size: 400, color: WHITE, floatDelay: 0.06 },
   // ── Middle band ───────────────────────────────────────────────────────────
-  { id: 3, x: -12, y:  28, size: 420, color: TEAL2, floatDelay: 0.18, swayDur: 3.2, swayDelay: 0.3 },
-  { id: 4, x:  26, y:  22, size: 410, color: GOLD2, floatDelay: 0.08, swayDur: 2.9, swayDelay: 0.9 },
-  { id: 5, x:  62, y:  26, size: 395, color: GOLD,  floatDelay: 0.15, swayDur: 3.5, swayDelay: 0.4 },
+  { id: 3, x: -12, y:  28, size: 420, color: TEAL2, floatDelay: 0.18 },
+  { id: 4, x:  26, y:  22, size: 410, color: GOLD2, floatDelay: 0.08 },
+  { id: 5, x:  62, y:  26, size: 395, color: GOLD,  floatDelay: 0.15 },
   // ── Lower band — covers CTA area ─────────────────────────────────────────
-  { id: 6, x: -14, y:  54, size: 430, color: WHITE, floatDelay: 0.22, swayDur: 3.3, swayDelay: 0.7 },
-  { id: 7, x:  24, y:  50, size: 420, color: TEAL,  floatDelay: 0.05, swayDur: 3.0, swayDelay: 1.2 },
-  { id: 8, x:  58, y:  55, size: 410, color: GOLD2, floatDelay: 0.19, swayDur: 2.8, swayDelay: 0.2 },
-  // ── Extra: centre anchor to kill any gap in the middle ────────────────────
-  { id: 9, x:  10, y:  40, size: 400, color: TEAL2, floatDelay: 0.11, swayDur: 3.4, swayDelay: 0.8 },
+  { id: 6, x: -10, y:  52, size: 430, color: WHITE, floatDelay: 0.22 },
+  { id: 7, x:  30, y:  48, size: 420, color: TEAL,  floatDelay: 0.05 },
 ];
 
 // ── SVG balloon component ─────────────────────────────────────────────────────
@@ -114,11 +111,11 @@ function BalloonSvg({ color, size }: { color: string; size: number }) {
 // ── Single balloon ────────────────────────────────────────────────────────────
 interface BalloonProps {
   x: number; y: number; size: number; color: string;
-  floatDelay: number; swayDur: number; swayDelay: number;
+  floatDelay: number;
   floating: boolean;
 }
 
-function Balloon({ x, y, size, color, floatDelay, swayDur, swayDelay, floating }: BalloonProps) {
+function Balloon({ x, y, size, color, floatDelay, floating }: BalloonProps) {
   return (
     <motion.div
       style={{
@@ -128,31 +125,13 @@ function Balloon({ x, y, size, color, floatDelay, swayDur, swayDelay, floating }
         zIndex: 5,
         pointerEvents: "none",
       }}
-      animate={floating
-        ? { y: "-115vh" }
-        : { y: [0, -14, 3, -9, 0] }
-      }
+      animate={floating ? { y: "-115vh" } : { y: 0 }}
       transition={floating
         ? { duration: 1.1, delay: floatDelay, ease: [0.15, 0, 0.45, 1.1] }
-        : { duration: swayDur, repeat: Infinity, ease: "easeInOut",
-            repeatType: "loop", delay: swayDelay }
+        : { duration: 0 }
       }
     >
-      {/* Inner div rotates (sway), pivoting at string bottom */}
-      <motion.div
-        animate={floating
-          ? { rotate: 0 }
-          : { rotate: [-3, 4, -2, 5, -3] }
-        }
-        transition={floating
-          ? { duration: 0.3 }
-          : { duration: swayDur * 0.85, repeat: Infinity, ease: "easeInOut",
-              repeatType: "loop", delay: swayDelay + 0.25 }
-        }
-        style={{ transformOrigin: "50% 100%" }}
-      >
-        <BalloonSvg color={color} size={size} />
-      </motion.div>
+      <BalloonSvg color={color} size={size} />
     </motion.div>
   );
 }
