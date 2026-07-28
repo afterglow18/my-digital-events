@@ -30,6 +30,8 @@ const BALLOONS = [
   // ── Lower band — covers CTA area ─────────────────────────────────────────
   { id: 6, x: -10, y:  52, size: 430, color: WHITE, floatDelay: 0.22 },
   { id: 7, x:  30, y:  48, size: 420, color: TEAL,  floatDelay: 0.05 },
+  // ── Bottom-right corner ───────────────────────────────────────────────────
+  { id: 8, x:  62, y:  58, size: 400, color: WHITE, floatDelay: 0.14 },
 ];
 
 // ── SVG balloon component ─────────────────────────────────────────────────────
