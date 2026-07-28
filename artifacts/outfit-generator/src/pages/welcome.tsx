@@ -15,47 +15,48 @@ const WHITE = "#F4F0E8";
 const TEAL  = "#2CC4B0";
 const TEAL2 = "#1FA898";
 
-// ── 8 huge overlapping balloons — cover entire screen incl. button area ───────
-// size is the balloon HEIGHT in px (width = size × 0.65).
+// ── 9 huge overlapping balloons — cover entire screen incl. button area ───────
+// sizeVw = balloon WIDTH as % of viewport width — scales on every device.
 // x / y are % of the viewport — negatives let balloons bleed off the edge.
 const BALLOONS = [
   // ── Top band ─────────────────────────────────────────────────────────────
-  { id: 0, x: -20, y:  -8, size: 430, color: GOLD,  floatDelay: 0.00 },
-  { id: 1, x:  22, y: -12, size: 415, color: TEAL,  floatDelay: 0.12 },
-  { id: 2, x:  60, y:  -6, size: 400, color: WHITE, floatDelay: 0.06 },
+  { id: 0, x: -20, y:  -8, sizeVw: 78, color: GOLD,  floatDelay: 0.00 },
+  { id: 1, x:  22, y: -12, sizeVw: 75, color: TEAL,  floatDelay: 0.12 },
+  { id: 2, x:  60, y:  -6, sizeVw: 72, color: WHITE, floatDelay: 0.06 },
   // ── Middle band ───────────────────────────────────────────────────────────
-  { id: 3, x: -12, y:  28, size: 420, color: TEAL2, floatDelay: 0.18 },
-  { id: 4, x:  26, y:  22, size: 410, color: GOLD2, floatDelay: 0.08 },
-  { id: 5, x:  62, y:  26, size: 395, color: GOLD,  floatDelay: 0.15 },
+  { id: 3, x: -12, y:  28, sizeVw: 76, color: TEAL2, floatDelay: 0.18 },
+  { id: 4, x:  26, y:  22, sizeVw: 74, color: GOLD2, floatDelay: 0.08 },
+  { id: 5, x:  62, y:  26, sizeVw: 72, color: GOLD,  floatDelay: 0.15 },
   // ── Lower band — covers CTA area ─────────────────────────────────────────
-  { id: 6, x: -10, y:  52, size: 430, color: WHITE, floatDelay: 0.22 },
-  { id: 7, x:  30, y:  48, size: 420, color: TEAL,  floatDelay: 0.05 },
+  { id: 6, x: -10, y:  52, sizeVw: 78, color: WHITE, floatDelay: 0.22 },
+  { id: 7, x:  30, y:  48, sizeVw: 76, color: TEAL,  floatDelay: 0.05 },
   // ── Bottom-right corner ───────────────────────────────────────────────────
-  { id: 8, x:  62, y:  58, size: 400, color: WHITE, floatDelay: 0.14 },
+  { id: 8, x:  62, y:  58, sizeVw: 72, color: WHITE, floatDelay: 0.14 },
 ];
 
 // ── SVG balloon component ─────────────────────────────────────────────────────
-function BalloonSvg({ color, size }: { color: string; size: number }) {
-  const w    = size * 0.65;
-  const h    = size;
-  const cx   = w / 2;
-  const bRx  = w * 0.47;
-  const bRy  = h * 0.32;
-  const bCy  = h * 0.33;
-  const knotY  = bCy + bRy;
-  const knotH  = h * 0.065;
-  const strBot = h * 0.97;
+// sizeVw = balloon WIDTH as a % of viewport width (e.g. 75 → 75vw).
+// The SVG uses a fixed viewBox so it scales cleanly at any resolution.
+const VB_W = 65;   // viewBox width  (aspect ratio w:h = 65:100)
+const VB_H = 100;  // viewBox height
 
-  // Determine shine / shadow colours from base colour
-  const isWhite = color.startsWith("#F4") || color.startsWith("#F8");
-  const shadowColor = isWhite ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.22)";
+function BalloonSvg({ color, sizeVw }: { color: string; sizeVw: number }) {
+  const cx   = VB_W / 2;
+  const bRx  = VB_W * 0.47;
+  const bRy  = VB_H * 0.32;
+  const bCy  = VB_H * 0.33;
+  const knotY  = bCy + bRy;
+  const knotH  = VB_H * 0.065;
+  const strBot = VB_H * 0.97;
+
+  const isWhite = color.startsWith("#F4") || color.startsWith("#F8") || color === "#FFFFFF";
+  const shadowColor  = isWhite ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.22)";
   const shineOpacity = isWhite ? 0.55 : 0.42;
 
   return (
     <svg
-      width={w} height={h}
-      viewBox={`0 0 ${w} ${h}`}
-      style={{ overflow: "visible", display: "block" }}
+      viewBox={`0 0 ${VB_W} ${VB_H}`}
+      style={{ width: `${sizeVw}vw`, height: "auto", overflow: "visible", display: "block" }}
     >
       {/* Soft drop shadow beneath knot */}
       <ellipse cx={cx} cy={knotY + 8} rx={bRx * 0.55} ry={5} fill={shadowColor} />
@@ -63,7 +64,7 @@ function BalloonSvg({ color, size }: { color: string; size: number }) {
       {/* Body */}
       <ellipse cx={cx} cy={bCy} rx={bRx} ry={bRy} fill={color} />
 
-      {/* Subtle inner gradient illusion — a slightly lighter centre highlight */}
+      {/* Inner highlight */}
       <ellipse
         cx={cx + bRx * 0.04}
         cy={bCy - bRy * 0.08}
@@ -74,20 +75,20 @@ function BalloonSvg({ color, size }: { color: string; size: number }) {
 
       {/* Knot */}
       <path
-        d={`M ${cx - w * 0.055} ${knotY - 2} Q ${cx} ${knotY + knotH} ${cx + w * 0.055} ${knotY - 2}`}
+        d={`M ${cx - VB_W * 0.055} ${knotY - 2} Q ${cx} ${knotY + knotH} ${cx + VB_W * 0.055} ${knotY - 2}`}
         fill={color}
       />
 
       {/* String */}
       <path
-        d={`M ${cx} ${knotY + knotH} Q ${cx + w * 0.20} ${knotY + knotH + (strBot - knotY) * 0.45} ${cx - w * 0.06} ${strBot}`}
+        d={`M ${cx} ${knotY + knotH} Q ${cx + VB_W * 0.20} ${knotY + knotH + (strBot - knotY) * 0.45} ${cx - VB_W * 0.06} ${strBot}`}
         stroke={isWhite ? "rgba(120,100,70,0.35)" : "rgba(255,255,255,0.35)"}
         strokeWidth="1.8"
         fill="none"
         strokeLinecap="round"
       />
 
-      {/* Main shine highlight */}
+      {/* Main shine */}
       <ellipse
         cx={cx - bRx * 0.30}
         cy={bCy - bRy * 0.35}
@@ -97,7 +98,7 @@ function BalloonSvg({ color, size }: { color: string; size: number }) {
         transform={`rotate(-20 ${cx - bRx * 0.30} ${bCy - bRy * 0.35})`}
       />
 
-      {/* Small secondary shine */}
+      {/* Secondary shine */}
       <ellipse
         cx={cx - bRx * 0.48}
         cy={bCy - bRy * 0.55}
@@ -112,12 +113,12 @@ function BalloonSvg({ color, size }: { color: string; size: number }) {
 
 // ── Single balloon ────────────────────────────────────────────────────────────
 interface BalloonProps {
-  x: number; y: number; size: number; color: string;
+  x: number; y: number; sizeVw: number; color: string;
   floatDelay: number;
   floating: boolean;
 }
 
-function Balloon({ x, y, size, color, floatDelay, floating }: BalloonProps) {
+function Balloon({ x, y, sizeVw, color, floatDelay, floating }: BalloonProps) {
   return (
     <motion.div
       style={{
@@ -133,7 +134,7 @@ function Balloon({ x, y, size, color, floatDelay, floating }: BalloonProps) {
         : { duration: 0 }
       }
     >
-      <BalloonSvg color={color} size={size} />
+      <BalloonSvg color={color} sizeVw={sizeVw} />
     </motion.div>
   );
 }
