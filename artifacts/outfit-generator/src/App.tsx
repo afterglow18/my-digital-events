@@ -66,11 +66,9 @@ function AppShell() {
 
   return (
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-      {entered ? (
-        <Router />
-      ) : (
-        <WelcomePage onEnter={handleEnter} />
-      )}
+      {/* Router always rendered so wardrobe is ready when welcome unmounts */}
+      <Router />
+      {!entered && <WelcomePage onEnter={handleEnter} />}
     </WouterRouter>
   );
 }

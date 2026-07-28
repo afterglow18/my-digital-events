@@ -155,17 +155,14 @@ export default function WelcomePage({ onEnter }: Props) {
   const handleEnter = () => {
     if (phase !== "idle") return;
     setPhase("floating");
-    setTimeout(() => setPhase("exiting"), 1800);
-    setTimeout(finish, 2450);
+    // Once balloons have cleared, just unmount — wardrobe is already rendered underneath
+    setTimeout(finish, 1200);
   };
 
   const isFloating = phase !== "idle";
-  const isExiting  = phase === "exiting";
 
   return (
     <motion.div
-      animate={{ opacity: isExiting ? 0 : 1 }}
-      transition={{ duration: 0.65, ease: "easeIn" }}
       style={{
         position: "fixed", inset: 0, zIndex: 200,
         overflow: "hidden",
