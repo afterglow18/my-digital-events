@@ -227,7 +227,7 @@ export default function WelcomePage({ onEnter }: Props) {
             fontSize: 11, fontWeight: 500,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "rgba(212,168,67,0.55)",
+            color: "#000000",
             margin: 0, textAlign: "center",
           }}
         >
