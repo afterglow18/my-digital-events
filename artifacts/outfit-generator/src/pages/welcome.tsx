@@ -9,11 +9,11 @@ import { motion } from "framer-motion";
 interface Props { onEnter: () => void; }
 
 // ── Palette: gold, white, teal only ───────────────────────────────────────────
-const GOLD  = "#D4A843";
-const GOLD2 = "#C49235";
-const WHITE = "#F4F0E8";
-const TEAL  = "#2CC4B0";
-const TEAL2 = "#1FA898";
+const GOLD  = "#FFFFFF";
+const GOLD2 = "#FFFFFF";
+const WHITE = "#FFFFFF";
+const TEAL  = "#FFFFFF";
+const TEAL2 = "#FFFFFF";
 
 // ── 10 huge overlapping balloons — cover entire screen incl. button area ──────
 // size is the balloon HEIGHT in px (width = size × 0.65).
