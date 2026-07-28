@@ -15,22 +15,24 @@ const WHITE = "#F4F0E8";
 const TEAL  = "#2CC4B0";
 const TEAL2 = "#1FA898";
 
-// ── 6 huge overlapping balloons ───────────────────────────────────────────────
+// ── 10 huge overlapping balloons — cover entire screen incl. button area ──────
 // size is the balloon HEIGHT in px (width = size × 0.65).
 // x / y are % of the viewport — negatives let balloons bleed off the edge.
 const BALLOONS = [
-  // Left-center: big gold, slightly off-left edge
-  { id: 0, x: -18, y:  -8, size: 420, color: GOLD,  floatDelay: 0.00, swayDur: 3.4, swayDelay: 0.0 },
-  // Right of center top: teal, overlaps first
-  { id: 1, x:  30, y: -12, size: 400, color: TEAL,  floatDelay: 0.14, swayDur: 3.0, swayDelay: 0.6 },
-  // Far right: white, bleeds off right edge
-  { id: 2, x:  62, y:  -6, size: 380, color: WHITE, floatDelay: 0.06, swayDur: 3.6, swayDelay: 1.1 },
-  // Lower left: second teal, fills lower half
-  { id: 3, x: -10, y:  36, size: 410, color: TEAL2, floatDelay: 0.20, swayDur: 3.2, swayDelay: 0.3 },
-  // Lower center-right: gold
-  { id: 4, x:  28, y:  30, size: 390, color: GOLD2, floatDelay: 0.10, swayDur: 2.9, swayDelay: 0.9 },
-  // Lower right: white, anchors bottom-right corner
-  { id: 5, x:  58, y:  38, size: 370, color: WHITE, floatDelay: 0.17, swayDur: 3.3, swayDelay: 0.5 },
+  // ── Top band ─────────────────────────────────────────────────────────────
+  { id: 0, x: -20, y:  -8, size: 430, color: GOLD,  floatDelay: 0.00, swayDur: 3.4, swayDelay: 0.0 },
+  { id: 1, x:  22, y: -12, size: 415, color: TEAL,  floatDelay: 0.12, swayDur: 3.1, swayDelay: 0.6 },
+  { id: 2, x:  60, y:  -6, size: 400, color: WHITE, floatDelay: 0.06, swayDur: 3.6, swayDelay: 1.1 },
+  // ── Middle band ───────────────────────────────────────────────────────────
+  { id: 3, x: -12, y:  28, size: 420, color: TEAL2, floatDelay: 0.18, swayDur: 3.2, swayDelay: 0.3 },
+  { id: 4, x:  26, y:  22, size: 410, color: GOLD2, floatDelay: 0.08, swayDur: 2.9, swayDelay: 0.9 },
+  { id: 5, x:  62, y:  26, size: 395, color: GOLD,  floatDelay: 0.15, swayDur: 3.5, swayDelay: 0.4 },
+  // ── Lower band — covers CTA area ─────────────────────────────────────────
+  { id: 6, x: -14, y:  54, size: 430, color: WHITE, floatDelay: 0.22, swayDur: 3.3, swayDelay: 0.7 },
+  { id: 7, x:  24, y:  50, size: 420, color: TEAL,  floatDelay: 0.05, swayDur: 3.0, swayDelay: 1.2 },
+  { id: 8, x:  58, y:  55, size: 410, color: GOLD2, floatDelay: 0.19, swayDur: 2.8, swayDelay: 0.2 },
+  // ── Extra: centre anchor to kill any gap in the middle ────────────────────
+  { id: 9, x:  10, y:  40, size: 400, color: TEAL2, floatDelay: 0.11, swayDur: 3.4, swayDelay: 0.8 },
 ];
 
 // ── SVG balloon component ─────────────────────────────────────────────────────
