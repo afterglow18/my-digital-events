@@ -1,10 +1,6 @@
 /**
- * WelcomePage — Balloon reveal splash screen.
- *
- * IDLE    : ~20 colourful balloons bob gently over the dimmed hero image.
- * FLOATING: "Open Events ✨" tapped → balloons fly upward (staggered),
- *           dark overlay fades, hero image is fully revealed.
- * EXITING : whole page fades out → onEnter() called.
+ * WelcomePage — 5-6 huge gold/white/teal balloons fill the screen.
+ * Tap "Open Events ✨" → they all float upward → hero is revealed → enter app.
  */
 
 import { useState, useRef, useCallback } from "react";
@@ -12,55 +8,47 @@ import { motion } from "framer-motion";
 
 interface Props { onEnter: () => void; }
 
-// ── Balloon data ──────────────────────────────────────────────────────────────
-// All positions are deterministic so the screen looks the same every launch.
-// x / y are % offsets for the top-left corner of each balloon div.
-// floatDelay staggers the fly-up; swayDur / swayDelay vary the idle bob.
+// ── Palette: gold, white, teal only ───────────────────────────────────────────
+const GOLD  = "#D4A843";
+const GOLD2 = "#C49235";
+const WHITE = "#F4F0E8";
+const TEAL  = "#2CC4B0";
+const TEAL2 = "#1FA898";
 
-const PALETTE = [
-  "#FF6B9D","#A855F7","#4ECDC4","#FFD93D","#FF8E53",
-  "#6BCB77","#F97316","#EC4899","#3B82F6","#EAB308",
-  "#F43F5E","#10B981",
-];
-
+// ── 6 huge overlapping balloons ───────────────────────────────────────────────
+// size is the balloon HEIGHT in px (width = size × 0.65).
+// x / y are % of the viewport — negatives let balloons bleed off the edge.
 const BALLOONS = [
-  // ── Row 1 — near top ──────────────────────────────────────────────────────
-  { id:  0, x:  3, y: -2, size: 78, color: PALETTE[0],  floatDelay: 0.00, swayDur: 2.8, swayDelay: 0.0 },
-  { id:  1, x: 21, y: -5, size: 86, color: PALETTE[1],  floatDelay: 0.12, swayDur: 3.2, swayDelay: 0.5 },
-  { id:  2, x: 42, y: -3, size: 82, color: PALETTE[2],  floatDelay: 0.24, swayDur: 2.6, swayDelay: 0.9 },
-  { id:  3, x: 62, y: -4, size: 84, color: PALETTE[3],  floatDelay: 0.06, swayDur: 3.0, swayDelay: 1.3 },
-  { id:  4, x: 80, y: -1, size: 76, color: PALETTE[4],  floatDelay: 0.18, swayDur: 2.9, swayDelay: 0.3 },
-  // ── Row 2 ─────────────────────────────────────────────────────────────────
-  { id:  5, x: -1, y: 14, size: 84, color: PALETTE[5],  floatDelay: 0.30, swayDur: 3.1, swayDelay: 0.7 },
-  { id:  6, x: 15, y: 12, size: 90, color: PALETTE[6],  floatDelay: 0.04, swayDur: 2.7, swayDelay: 1.1 },
-  { id:  7, x: 36, y: 10, size: 86, color: PALETTE[7],  floatDelay: 0.16, swayDur: 3.3, swayDelay: 0.4 },
-  { id:  8, x: 57, y: 13, size: 88, color: PALETTE[8],  floatDelay: 0.08, swayDur: 2.5, swayDelay: 0.8 },
-  { id:  9, x: 76, y: 11, size: 82, color: PALETTE[9],  floatDelay: 0.26, swayDur: 3.0, swayDelay: 1.2 },
-  { id: 10, x: 91, y: 17, size: 78, color: PALETTE[10], floatDelay: 0.14, swayDur: 2.8, swayDelay: 0.2 },
-  // ── Row 3 ─────────────────────────────────────────────────────────────────
-  { id: 11, x:  5, y: 30, size: 86, color: PALETTE[11], floatDelay: 0.20, swayDur: 3.2, swayDelay: 1.0 },
-  { id: 12, x: 26, y: 27, size: 88, color: PALETTE[0],  floatDelay: 0.02, swayDur: 2.6, swayDelay: 0.6 },
-  { id: 13, x: 48, y: 25, size: 84, color: PALETTE[1],  floatDelay: 0.28, swayDur: 3.1, swayDelay: 0.1 },
-  { id: 14, x: 70, y: 28, size: 82, color: PALETTE[2],  floatDelay: 0.10, swayDur: 2.9, swayDelay: 0.5 },
-  // ── Row 4 — lower ─────────────────────────────────────────────────────────
-  { id: 15, x: 12, y: 43, size: 80, color: PALETTE[3],  floatDelay: 0.34, swayDur: 3.0, swayDelay: 0.2 },
-  { id: 16, x: 38, y: 40, size: 86, color: PALETTE[4],  floatDelay: 0.08, swayDur: 2.7, swayDelay: 0.8 },
-  { id: 17, x: 64, y: 43, size: 82, color: PALETTE[5],  floatDelay: 0.22, swayDur: 3.2, swayDelay: 0.4 },
-  { id: 18, x: 88, y: 40, size: 78, color: PALETTE[6],  floatDelay: 0.16, swayDur: 2.8, swayDelay: 1.0 },
+  // Left-center: big gold, slightly off-left edge
+  { id: 0, x: -18, y:  -8, size: 420, color: GOLD,  floatDelay: 0.00, swayDur: 3.4, swayDelay: 0.0 },
+  // Right of center top: teal, overlaps first
+  { id: 1, x:  30, y: -12, size: 400, color: TEAL,  floatDelay: 0.14, swayDur: 3.0, swayDelay: 0.6 },
+  // Far right: white, bleeds off right edge
+  { id: 2, x:  62, y:  -6, size: 380, color: WHITE, floatDelay: 0.06, swayDur: 3.6, swayDelay: 1.1 },
+  // Lower left: second teal, fills lower half
+  { id: 3, x: -10, y:  36, size: 410, color: TEAL2, floatDelay: 0.20, swayDur: 3.2, swayDelay: 0.3 },
+  // Lower center-right: gold
+  { id: 4, x:  28, y:  30, size: 390, color: GOLD2, floatDelay: 0.10, swayDur: 2.9, swayDelay: 0.9 },
+  // Lower right: white, anchors bottom-right corner
+  { id: 5, x:  58, y:  38, size: 370, color: WHITE, floatDelay: 0.17, swayDur: 3.3, swayDelay: 0.5 },
 ];
 
-// ── SVG balloon ───────────────────────────────────────────────────────────────
+// ── SVG balloon component ─────────────────────────────────────────────────────
 function BalloonSvg({ color, size }: { color: string; size: number }) {
-  const w   = size * 0.72;
-  const h   = size;
-  const cx  = w / 2;
-  // Body occupies top 62 % of the SVG; knot + string fill the rest.
-  const bRx = w * 0.46;
-  const bRy = h * 0.31;
-  const bCy = h * 0.32;
-  const knotY  = bCy + bRy;            // bottom of body ellipse
-  const knotH  = h * 0.07;
-  const strBot = h * 0.98;
+  const w    = size * 0.65;
+  const h    = size;
+  const cx   = w / 2;
+  const bRx  = w * 0.47;
+  const bRy  = h * 0.32;
+  const bCy  = h * 0.33;
+  const knotY  = bCy + bRy;
+  const knotH  = h * 0.065;
+  const strBot = h * 0.97;
+
+  // Determine shine / shadow colours from base colour
+  const isWhite = color.startsWith("#F4") || color.startsWith("#F8");
+  const shadowColor = isWhite ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.22)";
+  const shineOpacity = isWhite ? 0.55 : 0.42;
 
   return (
     <svg
@@ -68,41 +56,60 @@ function BalloonSvg({ color, size }: { color: string; size: number }) {
       viewBox={`0 0 ${w} ${h}`}
       style={{ overflow: "visible", display: "block" }}
     >
-      {/* Soft drop shadow */}
-      <ellipse cx={cx} cy={knotY + 6} rx={bRx * 0.6} ry={4} fill="rgba(0,0,0,0.18)" />
+      {/* Soft drop shadow beneath knot */}
+      <ellipse cx={cx} cy={knotY + 8} rx={bRx * 0.55} ry={5} fill={shadowColor} />
 
       {/* Body */}
       <ellipse cx={cx} cy={bCy} rx={bRx} ry={bRy} fill={color} />
 
-      {/* Knot — small teardrop below body */}
+      {/* Subtle inner gradient illusion — a slightly lighter centre highlight */}
+      <ellipse
+        cx={cx + bRx * 0.04}
+        cy={bCy - bRy * 0.08}
+        rx={bRx * 0.60}
+        ry={bRy * 0.55}
+        fill={isWhite ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.10)"}
+      />
+
+      {/* Knot */}
       <path
         d={`M ${cx - w * 0.055} ${knotY - 2} Q ${cx} ${knotY + knotH} ${cx + w * 0.055} ${knotY - 2}`}
         fill={color}
       />
 
-      {/* String — slight curve for life */}
+      {/* String */}
       <path
-        d={`M ${cx} ${knotY + knotH} Q ${cx + w * 0.18} ${knotY + knotH + (strBot - knotY) * 0.45} ${cx - w * 0.06} ${strBot}`}
-        stroke="rgba(255,255,255,0.4)"
-        strokeWidth="1.4"
+        d={`M ${cx} ${knotY + knotH} Q ${cx + w * 0.20} ${knotY + knotH + (strBot - knotY) * 0.45} ${cx - w * 0.06} ${strBot}`}
+        stroke={isWhite ? "rgba(120,100,70,0.35)" : "rgba(255,255,255,0.35)"}
+        strokeWidth="1.8"
         fill="none"
         strokeLinecap="round"
       />
 
-      {/* Shine highlight */}
+      {/* Main shine highlight */}
       <ellipse
         cx={cx - bRx * 0.30}
-        cy={bCy - bRy * 0.32}
-        rx={bRx * 0.22}
-        ry={bRy * 0.28}
-        fill="rgba(255,255,255,0.38)"
-        transform={`rotate(-22 ${cx - bRx * 0.30} ${bCy - bRy * 0.32})`}
+        cy={bCy - bRy * 0.35}
+        rx={bRx * 0.25}
+        ry={bRy * 0.30}
+        fill={`rgba(255,255,255,${shineOpacity})`}
+        transform={`rotate(-20 ${cx - bRx * 0.30} ${bCy - bRy * 0.35})`}
+      />
+
+      {/* Small secondary shine */}
+      <ellipse
+        cx={cx - bRx * 0.48}
+        cy={bCy - bRy * 0.55}
+        rx={bRx * 0.10}
+        ry={bRy * 0.12}
+        fill={`rgba(255,255,255,${shineOpacity * 0.6})`}
+        transform={`rotate(-20 ${cx - bRx * 0.48} ${bCy - bRy * 0.55})`}
       />
     </svg>
   );
 }
 
-// ── Single balloon with idle bob + triggered float-up ─────────────────────────
+// ── Single balloon ────────────────────────────────────────────────────────────
 interface BalloonProps {
   x: number; y: number; size: number; color: string;
   floatDelay: number; swayDur: number; swayDelay: number;
@@ -110,8 +117,6 @@ interface BalloonProps {
 }
 
 function Balloon({ x, y, size, color, floatDelay, swayDur, swayDelay, floating }: BalloonProps) {
-  // Outer div handles vertical translation (bob when idle, fly-up when triggered).
-  // Inner div handles rotation (sway around the string bottom).
   return (
     <motion.div
       style={{
@@ -122,26 +127,27 @@ function Balloon({ x, y, size, color, floatDelay, swayDur, swayDelay, floating }
         pointerEvents: "none",
       }}
       animate={floating
-        ? { y: "-110vh" }
-        : { y: ["0px", "-12px", "2px", "-8px", "0px"] }
+        ? { y: "-115vh" }
+        : { y: [0, -14, 3, -9, 0] }
       }
       transition={floating
-        ? { duration: 0.95, delay: floatDelay, ease: [0.18, 0, 0.5, 1.15] }
+        ? { duration: 1.1, delay: floatDelay, ease: [0.15, 0, 0.45, 1.1] }
         : { duration: swayDur, repeat: Infinity, ease: "easeInOut",
             repeatType: "loop", delay: swayDelay }
       }
     >
+      {/* Inner div rotates (sway), pivoting at string bottom */}
       <motion.div
         animate={floating
           ? { rotate: 0 }
-          : { rotate: [-4, 4, -3, 5, -4] }
+          : { rotate: [-3, 4, -2, 5, -3] }
         }
         transition={floating
           ? { duration: 0.3 }
-          : { duration: swayDur * 0.9, repeat: Infinity, ease: "easeInOut",
-              repeatType: "loop", delay: swayDelay + 0.2 }
+          : { duration: swayDur * 0.85, repeat: Infinity, ease: "easeInOut",
+              repeatType: "loop", delay: swayDelay + 0.25 }
         }
-        style={{ transformOrigin: "50% 100%" }}  // pivot at string bottom
+        style={{ transformOrigin: "50% 100%" }}
       >
         <BalloonSvg color={color} size={size} />
       </motion.div>
@@ -165,9 +171,8 @@ export default function WelcomePage({ onEnter }: Props) {
   const handleEnter = () => {
     if (phase !== "idle") return;
     setPhase("floating");
-    // After balloons clear + brief hero reveal → fade out → enter app
-    setTimeout(() => setPhase("exiting"), 1700);
-    setTimeout(finish, 2350);
+    setTimeout(() => setPhase("exiting"), 1800);
+    setTimeout(finish, 2450);
   };
 
   const isFloating = phase !== "idle";
@@ -180,10 +185,10 @@ export default function WelcomePage({ onEnter }: Props) {
       style={{
         position: "fixed", inset: 0, zIndex: 200,
         overflow: "hidden",
-        background: "#0e0a06",
+        background: "#0c0c14",
       }}
     >
-      {/* ── Hero image — always visible behind everything ── */}
+      {/* ── Hero image — sits behind balloons, revealed when they fly ── */}
       <img
         src="/hero-welcome.png"
         alt="My Digital Events"
@@ -199,11 +204,11 @@ export default function WelcomePage({ onEnter }: Props) {
         }}
       />
 
-      {/* ── Dark overlay — dims hero during balloon phase, fades when balloons fly ── */}
+      {/* ── Dark overlay — fades as balloons clear ── */}
       <motion.div
-        style={{ position: "absolute", inset: 0, zIndex: 2, background: "#0e0a06" }}
-        animate={{ opacity: isFloating ? 0 : 0.72 }}
-        transition={{ duration: isFloating ? 1.1 : 0, delay: isFloating ? 0.4 : 0, ease: "easeOut" }}
+        style={{ position: "absolute", inset: 0, zIndex: 2, background: "#0c0c14" }}
+        animate={{ opacity: isFloating ? 0 : 0.78 }}
+        transition={{ duration: isFloating ? 1.2 : 0, delay: isFloating ? 0.5 : 0, ease: "easeOut" }}
       />
 
       {/* ── Balloons ── */}
@@ -211,7 +216,16 @@ export default function WelcomePage({ onEnter }: Props) {
         <Balloon key={b.id} {...b} floating={isFloating} />
       ))}
 
-      {/* ── Bottom UI — subtitle + button, always above balloons ── */}
+      {/* ── Subtle ambient glow behind balloons — gold tint ── */}
+      <div
+        style={{
+          position: "absolute", inset: 0, zIndex: 4,
+          background: "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(212,168,67,0.08) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ── Bottom CTA ── */}
       <div
         style={{
           position: "absolute", bottom: 0, left: 0, right: 0,
@@ -220,7 +234,7 @@ export default function WelcomePage({ onEnter }: Props) {
           gap: 14,
           padding: "20px 32px",
           paddingBottom: "calc(env(safe-area-inset-bottom) + 52px)",
-          background: "linear-gradient(to bottom, transparent, rgba(14,10,6,0.88) 38%)",
+          background: "linear-gradient(to bottom, transparent, rgba(12,12,20,0.90) 40%)",
         }}
       >
         <motion.p
@@ -230,7 +244,7 @@ export default function WelcomePage({ onEnter }: Props) {
             fontSize: 11, fontWeight: 500,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "rgba(232,212,176,0.50)",
+            color: "rgba(212,168,67,0.55)",
             margin: 0, textAlign: "center",
           }}
         >
@@ -246,12 +260,12 @@ export default function WelcomePage({ onEnter }: Props) {
             fontWeight: 800, fontSize: 15,
             letterSpacing: "0.03em",
             color: "#3A2210",
-            background: "linear-gradient(to bottom, #E8D4B0, #B8894E)",
+            background: "linear-gradient(to bottom, #E8D4A0, #B8894E)",
             border: "1.5px solid #B8894E",
             borderRadius: 100,
             padding: "13px 48px",
             cursor: "pointer",
-            boxShadow: "0 4px 20px rgba(120,80,40,0.45), 2px 2px 0 rgba(0,0,0,0.7)",
+            boxShadow: "0 4px 24px rgba(120,80,40,0.50), 0 1px 0 rgba(255,255,255,0.15) inset",
             whiteSpace: "nowrap",
             pointerEvents: phase === "idle" ? "auto" : "none",
           }}
