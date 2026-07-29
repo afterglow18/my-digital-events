@@ -90,7 +90,7 @@ function TierCard({
       className="flex-1 flex flex-col rounded-xl border-[3px] transition-all relative overflow-hidden text-left"
       style={{
         borderColor: selected ? "#000" : "#C9BAA5",
-        background:  selected ? "hsl(35 55% 82%)" : "hsl(35 30% 93%)",
+        background:  selected ? "#4E8880" : "#e8f2f0",
         boxShadow:   selected ? "3px 3px 0px 0px rgba(0,0,0,1)" : "none",
       }}
     >
@@ -167,7 +167,15 @@ export function UpgradeSheet({ reason, onClose }: Props) {
       exit={{ opacity: 0, y: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 240 }}
       className="fixed inset-0 z-[80] flex flex-col max-w-md mx-auto"
-      style={{ background: "#F8F4ED" }}
+      style={{
+        backgroundColor: "#3A6B64",
+        backgroundImage: [
+          "repeating-linear-gradient(0deg,  transparent, transparent 28px, rgba(255,255,255,0.07) 28px, rgba(255,255,255,0.07) 30px)",
+          "repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(255,255,255,0.07) 28px, rgba(255,255,255,0.07) 30px)",
+          "repeating-linear-gradient(0deg,  transparent, transparent 84px, rgba(255,255,255,0.11) 84px, rgba(255,255,255,0.11) 88px)",
+          "repeating-linear-gradient(90deg, transparent, transparent 84px, rgba(255,255,255,0.11) 84px, rgba(255,255,255,0.11) 88px)",
+        ].join(", "),
+      }}
     >
       {/* Close button */}
       <div className="flex justify-end px-4 pb-0 flex-shrink-0"
@@ -200,15 +208,11 @@ export function UpgradeSheet({ reason, onClose }: Props) {
         <div className="rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: "#111" }}>
           <div className="px-4 py-4 flex flex-col gap-2">
             <p className="font-display font-bold uppercase text-[1.45rem] leading-[0.92] tracking-tight"
-               style={{ color: "hsl(35 55% 82%)" }}>
+               style={{ color: "#D4B896" }}>
               Unlimited saved events
             </p>
-            <p className="font-display font-bold uppercase text-[1.45rem] leading-[0.92] tracking-tight"
-               style={{ color: "hsl(35 55% 82%)" }}>
-              Unlimited saved outfits
-            </p>
             <p className="text-white/60 text-xs font-medium mt-1 leading-snug">
-              Your entire wardrobe, beautifully packed — forever.
+              Every detail of every event, beautifully saved — forever.
             </p>
           </div>
         </div>
