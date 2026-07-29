@@ -285,9 +285,9 @@ export default function WardrobePage() {
             const lm      = LM.rows[rowIdx];
             const items   = rowData[key];
 
-            const secH    = pH(ir, lm.shelfY - lm.sectionTop);
-            const carLeft = pX(ir, LM.doorL);
-            const carW    = pW(ir, LM.doorR - LM.doorL);
+            // Carousel spans the same horizontal band as the heading labels
+            const carLeft = pX(ir, LM.shelfL);
+            const carW    = pW(ir, LM.shelfR - LM.shelfL);
 
             // ADD button tap zone
             const btnCY   = pY(ir, lm.btnCY);
@@ -296,11 +296,12 @@ export default function WardrobePage() {
             // Heading position — locked to shelf
             const labelY  = allLabelYs[rowIdx];
 
-            // Bay above this heading: center the carousel in it
-            const bayTop  = bayTops[rowIdx];
-            const bayBot  = labelY - labelHalfH;
-            const photoH  = Math.min(secH, Math.max(0, bayBot - bayTop));
-            const photoTop = bayTop + (bayBot - bayTop - photoH) / 2;
+            // Bay above this heading: vertically centre uniformPhotoH in it
+            const bayTop   = bayTops[rowIdx];
+            const bayBot   = labelY - labelHalfH;
+            const bayH     = Math.max(0, bayBot - bayTop);
+            const photoH   = Math.min(uniformPhotoH, bayH);
+            const photoTop = bayTop + (bayH - photoH) / 2;
 
             return (
               <React.Fragment key={key}>
