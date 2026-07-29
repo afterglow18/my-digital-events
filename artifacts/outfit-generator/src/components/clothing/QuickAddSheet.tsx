@@ -30,9 +30,9 @@ type Category = "outfits" | "beauty" | "toiletries" | "essentials";
 
 const CATEGORY_LABELS: Record<Category, string> = {
   outfits:    "Outfits",
-  beauty:     "Beauty",
-  toiletries: "Toiletries",
-  essentials: "Essentials",
+  beauty:     "Decor",
+  toiletries: "Supplies",
+  essentials: "Memories",
 };
 
 type Phase =
@@ -126,9 +126,9 @@ const PHOTO_TIPS = [
 
 const CATEGORY_EXAMPLES: Record<string, { emoji: string; items: string[] }> = {
   outfits:    { emoji: "👗", items: ["Tops", "Bottoms", "Shoes", "Swim", "Undergarments", "Dresses", "Accessories"] },
-  beauty:     { emoji: "💄", items: ["Makeup", "Skincare", "Hair", "Jewelry", "Nail Polish"] },
-  toiletries: { emoji: "🪥", items: ["Shower", "Dental", "Medicine", "Feminine Care", "First Aid"] },
-  essentials: { emoji: "🧳", items: ["Travel Docs", "Tech", "Snacks", "Books", "Accessories"] },
+  beauty:     { emoji: "🪴", items: ["Flowers", "Candles", "Table Settings", "Centrepieces", "Lighting"] },
+  toiletries: { emoji: "🛍️", items: ["Favours", "Gift Bags", "Stationery", "Ribbons", "Packaging"] },
+  essentials: { emoji: "📸", items: ["Photos", "Videos", "Keepsakes", "Thank You Cards", "Scrapbook"] },
 };
 
 export function QuickAddSheet({ open, onOpenChange, category, existingCount, onCreated }: Props) {

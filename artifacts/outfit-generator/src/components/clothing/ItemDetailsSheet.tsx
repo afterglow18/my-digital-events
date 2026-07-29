@@ -33,6 +33,12 @@ import { getImageUrl } from "@/lib/utils";
 const SEASON_OPTIONS    = ["", "Spring", "Summer", "Fall", "Winter", "All Season"];
 const OCCASION_OPTIONS  = ["", "Casual", "Work", "Formal", "Sport", "Special Event"];
 const CATEGORY_OPTIONS  = ["outfits", "beauty", "toiletries", "essentials"];
+const CATEGORY_LABELS: Record<string, string> = {
+  outfits:    "Outfits",
+  beauty:     "Decor",
+  toiletries: "Supplies",
+  essentials: "Memories",
+};
 
 function Field({
   label,
@@ -521,12 +527,24 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
 
         {/* Category (editable) + Times Worn (read-only) */}
         <div className="grid grid-cols-2 gap-3">
-          <SelectField
-            label="Category"
-            value={form.category}
-            onChange={patch("category") as (v: string) => void}
-            options={CATEGORY_OPTIONS}
-          />
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[#3A2210]/50">Category</label>
+            <div className="relative">
+              <select
+                value={form.category}
+                onChange={(e) => (patch("category") as (v: string) => void)(e.target.value)}
+                className="w-full appearance-none border border-[#3A2210]/25 rounded-xl px-3 py-2 pr-8
+                           text-sm font-medium bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8894E]/40 cursor-pointer"
+              >
+                {CATEGORY_OPTIONS.map((o) => (
+                  <option key={o} value={o}>
+                    {o ? (CATEGORY_LABELS[o] ?? o) : `— Category —`}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-[#3A2210]/40" />
+            </div>
+          </div>
           <div className="flex flex-col gap-1 opacity-50 pointer-events-none">
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#3A2210]/50">Times Worn</span>
             <div className="border border-[#3A2210]/15 rounded-xl px-3 py-2 text-sm font-medium bg-white/50">
