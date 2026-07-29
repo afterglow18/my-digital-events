@@ -327,7 +327,7 @@ export default function GeneratePage() {
                       textTransform: "uppercase",
                       textShadow: "0 1px 4px rgba(0,0,0,0.3)",
                     }}>
-                      + {label.toUpperCase()}
+                      {label.toUpperCase()}
                     </span>
                   </div>
 
