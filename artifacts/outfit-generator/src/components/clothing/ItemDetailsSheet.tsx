@@ -587,7 +587,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                        hover:border-red-400 hover:text-red-500 transition-all"
           >
             <Trash2 className="w-4 h-4" />
-            Delete from Wardrobe Forever
+            Delete from Event Forever
           </button>
         ) : (
           <div className="flex gap-2">
