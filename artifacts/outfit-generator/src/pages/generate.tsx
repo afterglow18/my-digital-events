@@ -304,7 +304,7 @@ export default function GeneratePage() {
               const bayBot  = labelY - labelHalfH;
               const bayH    = Math.max(0, bayBot - bayTop);
               const photoH  = Math.min(uniformPhotoH, bayH);
-              const ROW_NUDGE = [3, 0, 0, -6];
+              const ROW_NUDGE = [3, 0, 0, -3];
               const photoTop = bayTop + (bayH - photoH) / 2 + 5 + ROW_NUDGE[rowIdx];
 
               return (
