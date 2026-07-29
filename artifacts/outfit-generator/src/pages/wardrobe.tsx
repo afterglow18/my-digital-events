@@ -277,7 +277,7 @@ export default function WardrobePage() {
                   letterSpacing: "0.10em", textTransform: "uppercase",
                   whiteSpace: "nowrap", cursor: "pointer",
                   textShadow: "0 1px 4px rgba(0,0,0,0.4)",
-                  marginTop: -2,
+                  marginTop: -8,
                 }}
               >
                 {totalItems}/{FREE_ITEM_LIMIT} ITEMS
