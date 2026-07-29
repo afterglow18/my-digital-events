@@ -60,8 +60,12 @@ const IMG_H = 1536;
 // Main body:     y ≈ 0.42 → 0.80   (rows 3 & 4)
 // doorL/doorR:   left/right inner walls of the suitcase interior
 const LM = {
-  doorL: 0.182,  // inner left wall
+  doorL: 0.182,  // inner left wall (carousel / tap-zone bounds)
   doorR: 0.776,  // inner right wall
+
+  // Label centering bounds — calibrated to the visible wood shelf surface
+  shelfL: 0.10,
+  shelfR: 0.92,
 
   rows: [
     { sectionTop: 0.170, shelfY: 0.265, btnCY: 0.150 },  // OUTFITS  (lid, upper)
@@ -236,8 +240,8 @@ export default function WardrobePage() {
           <div style={{
             position: "absolute",
             top: `calc(6px + env(safe-area-inset-top))`,
-            left: pX(ir, LM.doorL),
-            width: pW(ir, LM.doorR - LM.doorL),
+            left: pX(ir, LM.shelfL),
+            width: pW(ir, LM.shelfR - LM.shelfL),
             zIndex: 25,
             textAlign: "center",
             pointerEvents: "none",
@@ -309,8 +313,8 @@ export default function WardrobePage() {
                   style={{
                     position: "absolute",
                     top: labelY,
-                    left: carLeft,
-                    width: carW,
+                    left: pX(ir, LM.shelfL),
+                    width: pW(ir, LM.shelfR - LM.shelfL),
                     transform: "translateY(-50%)",
                     zIndex: 23,
                     textAlign: "center",
