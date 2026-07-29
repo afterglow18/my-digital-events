@@ -338,7 +338,7 @@ export default function GeneratePage() {
                     <div style={{
                       position: "absolute",
                       top: photoTop, left: carLeft, width: carW, height: photoH,
-                      zIndex: 10, overflow: "visible",
+                      zIndex: 10, overflow: "hidden",
                     }}>
                       <ClosetRow
                         ref={rowRefs[key]}
