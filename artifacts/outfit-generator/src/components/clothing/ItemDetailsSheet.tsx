@@ -64,7 +64,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? label}
         className="w-full border border-[#3A2210]/25 rounded-xl px-3 py-2 text-sm font-medium
-                   bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8894E]/40
+                   bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#3A6B64]/40
                    placeholder:font-normal placeholder:text-[#3A2210]/30"
       />
     </div>
@@ -92,7 +92,7 @@ function SelectField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="w-full appearance-none border border-[#3A2210]/25 rounded-xl px-3 py-2 pr-8
-                     text-sm font-medium bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8894E]/40
+                     text-sm font-medium bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#3A6B64]/40
                      cursor-pointer"
         >
           {options.map((o) => (
@@ -443,8 +443,8 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                 onClick={handleCleanUpPhoto}
                 disabled={compareOpen || cleanedLoading}
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4
-                           border border-[#B8894E] rounded-xl font-bold text-sm uppercase tracking-wide
-                           bg-gradient-to-b from-[#E8D4A0] to-[#B8894E] text-[#3A2210]
+                           border border-[#3A6B64] rounded-xl font-bold text-sm uppercase tracking-wide
+                           bg-gradient-to-b from-[#4E8880] to-[#3A6B64] text-[#D4B896]
                            shadow-sm active:opacity-80
                            transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -520,7 +520,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
             placeholder="Anything worth remembering…"
             rows={3}
             className="w-full border border-[#3A2210]/25 rounded-xl px-3 py-2 text-sm font-medium
-                       bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8894E]/40 resize-none
+                       bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#3A6B64]/40 resize-none
                        placeholder:font-normal placeholder:text-[#3A2210]/30"
           />
         </div>
@@ -534,7 +534,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                 value={form.category}
                 onChange={(e) => (patch("category") as (v: string) => void)(e.target.value)}
                 className="w-full appearance-none border border-[#3A2210]/25 rounded-xl px-3 py-2 pr-8
-                           text-sm font-medium bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8894E]/40 cursor-pointer"
+                           text-sm font-medium bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#3A6B64]/40 cursor-pointer"
               >
                 {CATEGORY_OPTIONS.map((o) => (
                   <option key={o} value={o}>
@@ -568,8 +568,8 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
               onClick={handleSave}
               disabled={updateItem.isPending}
               className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm
-                         font-display font-bold uppercase tracking-wide text-[#3A2210]
-                         bg-gradient-to-b from-[#E8D4A0] to-[#B8894E] border border-[#B8894E]
+                         font-display font-bold uppercase tracking-wide text-[#D4B896]
+                         bg-gradient-to-b from-[#4E8880] to-[#3A6B64] border border-[#3A6B64]
                          shadow-sm active:opacity-80 transition-all disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
