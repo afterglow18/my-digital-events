@@ -198,13 +198,7 @@ export default function WardrobePage() {
   const itemsLeft = isFree ? Math.max(0, FREE_ITEM_LIMIT - totalItems) : null;
   const ready     = ir.width > 0;
 
-  // ── Section layout helpers ────────────────────────────────────────────────
-  const sectionHeights = ready
-    ? LM.rows.map(lm => pH(ir, lm.shelfY - lm.sectionTop))
-    : LM.rows.map(() => 0);
-
-  // Use the smallest row height so all carousels show photos at the same size
-  const uniformPhotoH = Math.max(0, Math.min(...sectionHeights) - 4);
+  // uniformPhotoH computed from actual bay heights inside the layout IIFE below
 
   return (
     <div
@@ -276,6 +270,12 @@ export default function WardrobePage() {
               allLabelYs[1] + labelHalfH,             // row 2: just below DECOR label
               allLabelYs[2] + labelHalfH,             // row 3: just below SUPPLIES label
             ];
+
+            // Derive uniform photo height from actual bay heights (not old section heights)
+            const bayHeights = LM.rows.map((_, i) =>
+              Math.max(0, (allLabelYs[i] - labelHalfH) - bayTops[i])
+            );
+            const uniformPhotoH = Math.max(30, Math.floor(Math.min(...bayHeights) * 0.82));
 
             return ROWS.map(({ key, btnLabel }, rowIdx) => {
             const lm      = LM.rows[rowIdx];

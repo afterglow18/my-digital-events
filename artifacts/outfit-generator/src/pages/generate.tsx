@@ -230,11 +230,7 @@ export default function GeneratePage() {
 
   const canSave = Object.keys(centred).length > 0;
 
-  // ── Section layout helpers — matches wardrobe.tsx exactly ───────────────
-  const sectionHeights = ready
-    ? LM.rows.map(lm => pH(ir, lm.shelfY - lm.sectionTop))
-    : LM.rows.map(() => 0);
-  const uniformPhotoH = Math.max(0, Math.min(...(ready ? sectionHeights : [0])) - 4);
+  // uniformPhotoH computed from actual bay heights inside the layout IIFE below
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -283,6 +279,12 @@ export default function GeneratePage() {
           allLabelYs[1] + labelHalfH,
           allLabelYs[2] + labelHalfH,
         ];
+
+        // Derive uniform photo height from actual bay heights
+        const bayHeights = LM.rows.map((_, i) =>
+          Math.max(0, (allLabelYs[i] - labelHalfH) - bayTops[i])
+        );
+        const uniformPhotoH = Math.max(30, Math.floor(Math.min(...bayHeights) * 0.82));
 
         const LABEL_MAP: Record<string, string> = {
           outfits: "Outfits", beauty: "Decor",
