@@ -1,8 +1,33 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Shirt, Sparkles, Bookmark, Settings } from "lucide-react";
+import { Sparkles, Bookmark, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetWardrobeStats } from "@/hooks/useLocalDB";
+
+// Balloon icon — matches lucide's w/h + strokeWidth prop contract
+function BalloonIcon({ className, strokeWidth = 2 }: { className?: string; strokeWidth?: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* Balloon body */}
+      <ellipse cx="12" cy="9" rx="6" ry="7" />
+      {/* Knot */}
+      <path d="M10.5 16 Q12 17.5 13.5 16" />
+      {/* String */}
+      <path d="M12 17.5 Q13.5 19.5 11 22" />
+      {/* Shine */}
+      <ellipse cx="9.5" cy="6.5" rx="1.2" ry="1.8" opacity="0.4" fill="currentColor" stroke="none" transform="rotate(-20 9.5 6.5)" />
+    </svg>
+  );
+}
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -21,7 +46,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     : undefined;
 
   const navItems = [
-    { href: "/",         label: "Wardrobe", icon: Shirt,    badge: wardrobeCount },
+    { href: "/",         label: "Events",   icon: BalloonIcon, badge: wardrobeCount },
     { href: "/generate", label: "Generate", icon: Sparkles  },
     { href: "/saved",    label: "Saved",    icon: Bookmark  },
     { href: "/account",  label: "Settings", icon: Settings  },
