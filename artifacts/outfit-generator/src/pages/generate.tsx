@@ -270,21 +270,24 @@ export default function GeneratePage() {
 
         return (
           <>
-            {/* ── Page title ── */}
+            {/* ── Page title — identical positioning to Events page ── */}
             <div style={{
               position: "absolute",
-              top: `calc(${pY(ir, 0.095)}px + env(safe-area-inset-top))`,
-              left: 8,
-              right: 8,
+              top: `calc(6px + env(safe-area-inset-top))`,
+              left: pX(ir, LM.shelfL),
+              width: pW(ir, LM.shelfR - LM.shelfL),
               zIndex: 25,
               textAlign: "center",
               pointerEvents: "none",
-              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 4,
             }}>
               <div style={{
                 fontFamily: "var(--app-font-cursive, cursive)",
                 fontWeight: 400,
-                fontSize: Math.max(22, Math.min(pW(ir, 0.075), ir.containerH * 0.060)),
+                fontSize: Math.max(22, Math.min(pW(ir, 0.075), ir.containerW * 0.090)),
                 letterSpacing: "0.02em",
                 whiteSpace: "nowrap",
                 color: "#ffffff",
@@ -294,14 +297,14 @@ export default function GeneratePage() {
                 My Digital Events
               </div>
               <div style={{
-                fontFamily: "var(--font-display, serif)",
-                fontWeight: 900,
-                fontSize: Math.max(10, Math.min(pW(ir, 0.040), ir.containerH * 0.032)),
-                letterSpacing: "0.06em",
-                whiteSpace: "nowrap",
+                fontWeight: 700,
+                fontSize: 10,
+                letterSpacing: "0.10em",
                 textTransform: "uppercase",
-                color: "#1a0800",
-                lineHeight: 1.1,
+                color: "rgba(255,255,255,0.80)",
+                whiteSpace: "nowrap",
+                textShadow: "0 1px 4px rgba(0,0,0,0.4)",
+                marginTop: -2,
               }}>
                 MATCHMAKER
               </div>
