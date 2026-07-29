@@ -271,7 +271,7 @@ export default function AccountPage() {
         {/* ── 3. BACKUP & RESTORE ─────────────────────────────────────────── */}
         <Card emoji="💾" title="Backup & Restore">
           <p className="text-sm text-black/60 leading-snug">
-            Export your wardrobe to a file. Save it to iCloud Drive or Files to
+            Export your event data to a file. Save it to iCloud Drive or Files to
             keep it safe across phone upgrades.
           </p>
 
@@ -284,7 +284,7 @@ export default function AccountPage() {
 
           {/* Warning */}
           <p className="text-sm font-bold leading-snug" style={{ color: "#C0390B" }}>
-            ⚠️ Deleting the app removes all your wardrobe data.
+            ⚠️ Deleting the app removes all your event data.
             Export a backup first to keep it safe.
           </p>
 
@@ -296,7 +296,7 @@ export default function AccountPage() {
           />
 
           <p className="text-xs text-black/40 text-center leading-snug">
-            Importing replaces your current wardrobe with the backup.
+            Importing replaces your current event data with the backup.
           </p>
         </Card>
 
@@ -306,7 +306,7 @@ export default function AccountPage() {
             Version 1.0.0
           </p>
           <p className="text-sm text-black/55 leading-snug">
-            Your wardrobe stays on your device, works offline, and can be
+            Your event data stays on your device, works offline, and can be
             backed up with iCloud.
           </p>
         </Card>

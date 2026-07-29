@@ -99,7 +99,7 @@ export function WardrobePickerSheet({ open, onOpenChange, category, onPick, exis
         <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
             <div className="flex items-center justify-center h-40">
-              <span className="text-sm text-muted-foreground animate-pulse">Loading your wardrobe…</span>
+              <span className="text-sm text-muted-foreground animate-pulse">Loading your event…</span>
             </div>
           ) : items && items.length > 0 ? (
             <div className="grid grid-cols-3 gap-3">
@@ -127,7 +127,7 @@ export function WardrobePickerSheet({ open, onOpenChange, category, onPick, exis
                       {alreadyIn && (
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                           <span className="text-white text-xs font-bold uppercase tracking-wide bg-black/60 px-1.5 py-0.5 rounded">
-                            In look
+                            In event
                           </span>
                         </div>
                       )}
@@ -143,7 +143,7 @@ export function WardrobePickerSheet({ open, onOpenChange, category, onPick, exis
             <div className="flex flex-col items-center justify-center h-40 gap-3 text-center">
               <span className="text-4xl">💄</span>
               <p className="text-sm text-muted-foreground font-medium">
-                No {label.toLowerCase()} in your wardrobe yet.
+                No {label.toLowerCase()} in your event yet.
               </p>
             </div>
           )}

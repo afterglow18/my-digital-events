@@ -27,7 +27,7 @@ interface Props {
 const FEATURES = [
   "Unlimited clothing items",
   "Unlimited saved outfits",
-  "Save your entire wardrobe",
+  "Save your entire event",
   "One-time payment options",
   "Choose monthly, yearly or lifetime!",
 ] as const;
