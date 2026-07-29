@@ -230,10 +230,11 @@ export default function GeneratePage() {
 
   const canSave = Object.keys(centred).length > 0;
 
-  // ── Section layout helpers — per-row, same as wardrobe.tsx ──────────────
+  // ── Section layout helpers — matches wardrobe.tsx exactly ───────────────
   const sectionHeights = ready
     ? LM.rows.map(lm => pH(ir, lm.shelfY - lm.sectionTop))
     : LM.rows.map(() => 0);
+  const uniformPhotoH = Math.max(0, Math.min(...(ready ? sectionHeights : [0])) - 4);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -265,66 +266,43 @@ export default function GeneratePage() {
       />
 
       {ready && (() => {
-        const carLeft = pX(ir, LM.doorL);
-        const carW    = pW(ir, LM.doorR - LM.doorL);
+        // ── Carousel bounds — same as wardrobe ────────────────────────────
+        const carLeft = pX(ir, LM.shelfL);
+        const carW    = pW(ir, LM.shelfR - LM.shelfL);
+
+        // ── Pre-compute all heading Y positions (same shifts as wardrobe) ─
+        const LABEL_SHIFTS = [0.018, 0.028, -0.022, -0.028];
+        const labelFontH   = Math.max(9, pH(ir, 0.013));
+        const labelHalfH   = labelFontH / 2 + 5;
+        const allLabelYs   = LM.rows.map((lm, i) =>
+          pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08 + LABEL_SHIFTS[i])
+        );
+        const bayTops = [
+          pY(ir, 0.025),
+          allLabelYs[0] + labelHalfH,
+          allLabelYs[1] + labelHalfH,
+          allLabelYs[2] + labelHalfH,
+        ];
+
+        const LABEL_MAP: Record<string, string> = {
+          outfits: "Outfits", beauty: "Decor",
+          toiletries: "Supplies", essentials: "Memories",
+        };
 
         return (
           <>
-            {/* ── Page title — identical positioning to Events page ── */}
-            <div style={{
-              position: "absolute",
-              top: `calc(6px + env(safe-area-inset-top))`,
-              left: pX(ir, LM.shelfL),
-              width: pW(ir, LM.shelfR - LM.shelfL),
-              zIndex: 25,
-              textAlign: "center",
-              pointerEvents: "none",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 4,
-            }}>
-              <div style={{
-                fontFamily: "var(--app-font-cursive, cursive)",
-                fontWeight: 400,
-                fontSize: Math.max(22, Math.min(pW(ir, 0.075), ir.containerW * 0.090)),
-                letterSpacing: "0.02em",
-                whiteSpace: "nowrap",
-                color: "#ffffff",
-                lineHeight: 1.1,
-                textShadow: "0 2px 8px rgba(0,0,0,0.35)",
-              }}>
-                My Digital Events
-              </div>
-              <div style={{
-                fontWeight: 700,
-                fontSize: 10,
-                letterSpacing: "0.10em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.80)",
-                whiteSpace: "nowrap",
-                textShadow: "0 1px 4px rgba(0,0,0,0.4)",
-                marginTop: -2,
-              }}>
-                MATCHMAKER
-              </div>
-            </div>
-
-            {/* ── 4 shelf carousels + ADD-button covers ── */}
+            {/* ── 4 shelf carousels — bay-above-heading, matches wardrobe ── */}
             {ROWS.map(({ key }, rowIdx) => {
               const lm    = LM.rows[rowIdx];
               const items = { outfits, beauty, toiletries, essentials }[key];
-              const secTop = pY(ir, lm.sectionTop);
-              const secH   = pH(ir, lm.shelfY - lm.sectionTop);
-              const btnCY  = pY(ir, lm.btnCY);
-              const btnH   = Math.max(32, pH(ir, 0.045));
-
-              const LABEL_MAP: Record<string, string> = {
-                outfits: "Outfits", beauty: "Decor",
-                toiletries: "Supplies", essentials: "Memories",
-              };
               const label = LABEL_MAP[key] ?? key;
-              const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08);
+
+              const labelY  = allLabelYs[rowIdx];
+              const bayTop  = bayTops[rowIdx];
+              const bayBot  = labelY - labelHalfH;
+              const bayH    = Math.max(0, bayBot - bayTop);
+              const photoH  = Math.min(uniformPhotoH, bayH);
+              const photoTop = bayTop + (bayH - photoH) / 2 + 5;
 
               return (
                 <React.Fragment key={key}>
@@ -354,25 +332,23 @@ export default function GeneratePage() {
                   </div>
 
                   {items.length > 0 ? (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: secTop, left: carLeft, width: carW, height: secH,
-                        zIndex: 10, overflow: "visible",
-                      }}
-                    >
+                    <div style={{
+                      position: "absolute",
+                      top: photoTop, left: carLeft, width: carW, height: photoH,
+                      zIndex: 10, overflow: "visible",
+                    }}>
                       <ClosetRow
                         ref={rowRefs[key]}
                         items={items}
                         onCenteredItem={setCentredHandlers[key]}
-                        maxPhotoH={Math.max(0, sectionHeights[rowIdx] - 4)}
+                        maxPhotoH={uniformPhotoH}
                         disableSwipe
                       />
                     </div>
                   ) : (
                     <div style={{
                       position: "absolute",
-                      top: secTop, left: carLeft, width: carW, height: secH,
+                      top: photoTop, left: carLeft, width: carW, height: Math.max(photoH, 40),
                       zIndex: 10,
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
@@ -388,6 +364,46 @@ export default function GeneratePage() {
                 </React.Fragment>
               );
             })}
+
+            {/* ── Page title + MATCHMAKER — below bottom shelf, matches wardrobe ── */}
+            <div style={{
+              position: "absolute",
+              top: pY(ir, 0.668),
+              left: pX(ir, LM.shelfL),
+              width: pW(ir, LM.shelfR - LM.shelfL),
+              zIndex: 25,
+              textAlign: "center",
+              pointerEvents: "none",
+              transform: "translateY(-50%)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+            }}>
+              <div style={{
+                fontFamily: "var(--app-font-cursive, cursive)",
+                fontWeight: 400,
+                fontSize: Math.max(22, Math.min(pW(ir, 0.075), ir.containerW * 0.090)),
+                letterSpacing: "0.02em",
+                whiteSpace: "nowrap",
+                color: "#ffffff",
+                lineHeight: 1.1,
+                textShadow: "0 2px 8px rgba(0,0,0,0.35)",
+              }}>
+                My Digital Events
+              </div>
+              <div style={{
+                fontWeight: 700,
+                fontSize: 10,
+                letterSpacing: "0.10em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.80)",
+                whiteSpace: "nowrap",
+                textShadow: "0 1px 4px rgba(0,0,0,0.4)",
+              }}>
+                MATCHMAKER
+              </div>
+            </div>
 
             {/* ── Spinning sparkle overlay ── */}
             <AnimatePresence>
