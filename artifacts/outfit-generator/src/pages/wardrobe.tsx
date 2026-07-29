@@ -263,26 +263,6 @@ export default function WardrobePage() {
               My Digital Events
             </div>
 
-            {/* Item-count — no pill, plain text */}
-            {itemsLeft !== null && (
-              <button
-                onClick={() => setUpgradeReason("items")}
-                data-testid="badge-item-count"
-                aria-label={`${totalItems} of ${FREE_ITEM_LIMIT} items used — tap to upgrade`}
-                style={{
-                  pointerEvents: "auto",
-                  padding: 0, border: "none", background: "transparent",
-                  color: totalItems >= FREE_ITEM_LIMIT ? "#ffaaaa" : "rgba(255,255,255,0.80)",
-                  fontWeight: 700, fontSize: 10,
-                  letterSpacing: "0.10em", textTransform: "uppercase",
-                  whiteSpace: "nowrap", cursor: "pointer",
-                  textShadow: "0 1px 4px rgba(0,0,0,0.4)",
-                  marginTop: -8,
-                }}
-              >
-                {totalItems}/{FREE_ITEM_LIMIT} ITEMS
-              </button>
-            )}
           </div>
 
           {/* ── Pre-compute all heading Y positions so bay boundaries are known ── */}
@@ -425,6 +405,38 @@ export default function WardrobePage() {
               cursor: "pointer",
             }}
           />
+
+          {/* ── Item counter — below bottom shelf, pill background ── */}
+          {itemsLeft !== null && (
+            <button
+              onClick={() => setUpgradeReason("items")}
+              data-testid="badge-item-count"
+              aria-label={`${totalItems} of ${FREE_ITEM_LIMIT} items used — tap to upgrade`}
+              style={{
+                position: "absolute",
+                top: pY(ir, 0.800),
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 27,
+                pointerEvents: "auto",
+                padding: "4px 18px",
+                borderRadius: 20,
+                border: "none",
+                background: totalItems >= FREE_ITEM_LIMIT
+                  ? "rgba(200,40,40,0.18)"
+                  : "rgba(255,255,255,0.55)",
+                boxShadow: totalItems >= FREE_ITEM_LIMIT
+                  ? "0 0 0 2px rgba(200,40,40,0.40)"
+                  : "0 0 0 1.5px rgba(180,100,110,0.28)",
+                color: totalItems >= FREE_ITEM_LIMIT ? "#aa0000" : "#7a3a40",
+                fontWeight: 700, fontSize: 10,
+                letterSpacing: "0.08em", textTransform: "uppercase",
+                whiteSpace: "nowrap", cursor: "pointer",
+              }}
+            >
+              {totalItems}/{FREE_ITEM_LIMIT} ITEMS
+            </button>
+          )}
 
           {/* ── Lipstick icon tap zone — opens premium upgrade sheet ── */}
           <button
