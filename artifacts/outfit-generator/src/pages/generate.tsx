@@ -31,6 +31,8 @@ const PINK  = "#E8D4B0";
 const LM = {
   doorL: 0.182,
   doorR: 0.776,
+  shelfL: 0.10,
+  shelfR: 0.92,
   rows: [
     { sectionTop: 0.170, shelfY: 0.265, btnCY: 0.150 },  // OUTFITS  (lid, upper)
     { sectionTop: 0.305, shelfY: 0.400, btnCY: 0.285 },  // BEAUTY   (lid, lower)
@@ -313,7 +315,11 @@ export default function GeneratePage() {
               const btnCY  = pY(ir, lm.btnCY);
               const btnH   = Math.max(32, pH(ir, 0.045));
 
-              const label = key.toUpperCase();
+              const LABEL_MAP: Record<string, string> = {
+                outfits: "Outfits", beauty: "Decor",
+                toiletries: "Supplies", essentials: "Memories",
+              };
+              const label = LABEL_MAP[key] ?? key;
               const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08);
 
               return (
@@ -323,8 +329,8 @@ export default function GeneratePage() {
                   <div style={{
                     position: "absolute",
                     top: labelY,
-                    left: carLeft,
-                    width: carW,
+                    left: pX(ir, LM.shelfL),
+                    width: pW(ir, LM.shelfR - LM.shelfL),
                     transform: "translateY(-50%)",
                     zIndex: 12,
                     textAlign: "center",
@@ -334,11 +340,12 @@ export default function GeneratePage() {
                       fontSize: Math.max(9, pH(ir, 0.013)),
                       fontWeight: 800,
                       letterSpacing: "0.12em",
-                      color: "#3A2210",
+                      color: "#ffffff",
                       fontFamily: "var(--font-display)",
                       textTransform: "uppercase",
+                      textShadow: "0 1px 4px rgba(0,0,0,0.3)",
                     }}>
-                      {label}
+                      + {label.toUpperCase()}
                     </span>
                   </div>
 
@@ -436,13 +443,13 @@ export default function GeneratePage() {
                   letterSpacing: "0.07em", textTransform: "uppercase",
                   color: "#3A2210", fontFamily: "var(--font-display)", margin: 0,
                 }}>
-                  Your wardrobe is empty
+                  Your event is empty
                 </p>
                 <p style={{
                   fontSize: 11, color: "#9a5060",
                   marginTop: 5, lineHeight: 1.5,
                 }}>
-                  Add outfits, decor, supplies or memories in the Wardrobe tab first.
+                  Add outfits, decor, supplies or memories in the Events tab first.
                 </p>
               </div>
             )}
