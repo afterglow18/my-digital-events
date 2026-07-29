@@ -285,23 +285,42 @@ export default function WardrobePage() {
             )}
           </div>
 
-          {/* ── 4 shelf rows ── */}
-          {ROWS.map(({ key, btnLabel }, rowIdx) => {
+          {/* ── Pre-compute all heading Y positions so bay boundaries are known ── */}
+          {(() => {
+            const LABEL_SHIFTS  = [0.018, 0.028, -0.022, -0.028];
+            const labelFontH    = Math.max(9, pH(ir, 0.013));
+            const labelHalfH    = labelFontH / 2 + 5; // half text height + gap
+            const allLabelYs    = LM.rows.map((lm, i) =>
+              pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08 + LABEL_SHIFTS[i])
+            );
+            // Bay top for each row = space above its heading
+            const bayTops = [
+              pY(ir, 0.045),                         // row 0: just below title block
+              allLabelYs[0] + labelHalfH,             // row 1: just below OUTFITS label
+              allLabelYs[1] + labelHalfH,             // row 2: just below DECOR label
+              allLabelYs[2] + labelHalfH,             // row 3: just below SUPPLIES label
+            ];
+
+            return ROWS.map(({ key, btnLabel }, rowIdx) => {
             const lm      = LM.rows[rowIdx];
             const items   = rowData[key];
 
-            const secTop  = pY(ir, lm.sectionTop);
             const secH    = pH(ir, lm.shelfY - lm.sectionTop);
             const carLeft = pX(ir, LM.doorL);
             const carW    = pW(ir, LM.doorR - LM.doorL);
 
-            // ADD button: centered in the section at btnCY
+            // ADD button tap zone
             const btnCY   = pY(ir, lm.btnCY);
             const btnH    = Math.max(32, pH(ir, 0.045));
 
-            // Top two rows nudged down; bottom two rows nudged up
-            const labelShift = [0.018, 0.028, -0.022, -0.028][rowIdx];
-            const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08 + labelShift);
+            // Heading position — locked to shelf
+            const labelY  = allLabelYs[rowIdx];
+
+            // Bay above this heading: center the carousel in it
+            const bayTop  = bayTops[rowIdx];
+            const bayBot  = labelY - labelHalfH;
+            const photoH  = Math.min(secH, Math.max(0, bayBot - bayTop));
+            const photoTop = bayTop + (bayBot - bayTop - photoH) / 2;
 
             return (
               <React.Fragment key={key}>
@@ -337,16 +356,16 @@ export default function WardrobePage() {
                   </span>
                 </button>
 
-                {/* ── Item carousel — fills the section between buttons ── */}
+                {/* ── Item carousel — centered in bay above heading ── */}
                 {items.length > 0 && (
                   <div
                     data-testid={`row-${key}`}
                     style={{
                       position: "absolute",
-                      top:    secTop,
+                      top:    photoTop,
                       left:   carLeft,
                       width:  carW,
-                      height: secH,
+                      height: photoH,
                       zIndex: 10,
                       overflow: "visible",
                     }}
@@ -385,7 +404,8 @@ export default function WardrobePage() {
 
               </React.Fragment>
             );
-          })}
+          });
+          })()}
 
 
           {/* ── Person icon tap zone ── */}
