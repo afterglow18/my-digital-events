@@ -236,19 +236,16 @@ export default function WardrobePage() {
 
       {ready && (
         <>
-          {/* ── Page title + item counter pinned to top, bounded to shelf interior ── */}
+          {/* ── Page title — below bottom shelf ── */}
           <div style={{
             position: "absolute",
-            top: `calc(6px + env(safe-area-inset-top))`,
+            top: pY(ir, 0.785),
             left: pX(ir, LM.shelfL),
             width: pW(ir, LM.shelfR - LM.shelfL),
             zIndex: 25,
             textAlign: "center",
             pointerEvents: "none",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 4,
+            transform: "translateY(-50%)",
           }}>
             <div style={{
               fontFamily: "var(--app-font-cursive, cursive)",
@@ -262,7 +259,6 @@ export default function WardrobePage() {
             }}>
               My Digital Events
             </div>
-
           </div>
 
           {/* ── Pre-compute all heading Y positions so bay boundaries are known ── */}
@@ -275,7 +271,7 @@ export default function WardrobePage() {
             );
             // Bay top for each row = space above its heading
             const bayTops = [
-              pY(ir, 0.045),                         // row 0: just below title block
+              pY(ir, 0.025),                         // row 0: just below safe-area top
               allLabelYs[0] + labelHalfH,             // row 1: just below OUTFITS label
               allLabelYs[1] + labelHalfH,             // row 2: just below DECOR label
               allLabelYs[2] + labelHalfH,             // row 3: just below SUPPLIES label
@@ -415,7 +411,7 @@ export default function WardrobePage() {
               aria-label={`${totalItems} of ${FREE_ITEM_LIMIT} items used — tap to upgrade`}
               style={{
                 position: "absolute",
-                top: pY(ir, 0.800),
+                top: pY(ir, 0.830),
                 left: "50%",
                 transform: "translate(-50%, -50%)",
                 zIndex: 27,
