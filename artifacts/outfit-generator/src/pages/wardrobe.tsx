@@ -235,7 +235,7 @@ export default function WardrobePage() {
           {/* ── Page title ── */}
           <div style={{
             position: "absolute",
-            top: pY(ir, 0.090),
+            top: `calc(${pY(ir, 0.090)}px + env(safe-area-inset-top))`,
             left: 8,
             right: 8,
             zIndex: 25,
@@ -244,16 +244,16 @@ export default function WardrobePage() {
             overflow: "hidden",
           }}>
             <div style={{
-              fontFamily: "var(--font-display, serif)",
-              fontWeight: 900,
-              fontSize: Math.max(8, Math.min(pW(ir, 0.030), ir.containerW * 0.040)),
-              letterSpacing: "0.08em",
+              fontFamily: "var(--app-font-cursive, cursive)",
+              fontWeight: 400,
+              fontSize: Math.max(22, Math.min(pW(ir, 0.075), ir.containerW * 0.090)),
+              letterSpacing: "0.02em",
               whiteSpace: "nowrap",
-              textTransform: "uppercase",
-              color: "#1a0800",
+              color: "#ffffff",
               lineHeight: 1.1,
+              textShadow: "0 2px 8px rgba(0,0,0,0.35)",
             }}>
-              MY DIGITAL EVENTS
+              My Digital Events
             </div>
           </div>
 
@@ -265,7 +265,7 @@ export default function WardrobePage() {
               aria-label={`${totalItems} of ${FREE_ITEM_LIMIT} items used — tap to upgrade`}
               style={{
                 position: "absolute",
-                top: pY(ir, 0.108), left: "50%", transform: "translateX(-50%)",
+                top: `calc(${pY(ir, 0.108)}px + env(safe-area-inset-top))`, left: "50%", transform: "translateX(-50%)",
                 zIndex: 25,
                 padding: "3px 14px", borderRadius: 20, border: "none",
                 background: totalItems >= FREE_ITEM_LIMIT

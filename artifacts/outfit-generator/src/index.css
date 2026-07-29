@@ -63,6 +63,7 @@
 :root {
   --app-font-sans: 'Outfit', sans-serif;
   --app-font-display: 'Syne', sans-serif;
+  --app-font-cursive: 'Great Vibes', cursive;
   
   /* Events Palette: Warm Tan, Leather Brown, Cream, Black */
   --background: 40 30% 97%; /* Cream */
