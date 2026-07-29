@@ -230,10 +230,10 @@ export default function WardrobePage() {
 
       {ready && (
         <>
-          {/* ── Page title — below bottom shelf ── */}
+          {/* ── Page title — below bottom shelf (TITLE_Y shared with generate.tsx) ── */}
           <div style={{
             position: "absolute",
-            top: pY(ir, 0.668),
+            top: pY(ir, 0.668), /* TITLE_Y */
             left: pX(ir, LM.shelfL),
             width: pW(ir, LM.shelfR - LM.shelfL),
             zIndex: 25,

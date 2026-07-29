@@ -369,20 +369,16 @@ export default function GeneratePage() {
               );
             })}
 
-            {/* ── Page title + MATCHMAKER — below bottom shelf, matches wardrobe ── */}
+            {/* ── Page title — TITLE_Y 0.668 matches wardrobe.tsx exactly ── */}
             <div style={{
               position: "absolute",
-              top: pY(ir, 0.668),
+              top: pY(ir, 0.668), /* TITLE_Y — keep in sync with wardrobe.tsx */
               left: pX(ir, LM.shelfL),
               width: pW(ir, LM.shelfR - LM.shelfL),
               zIndex: 25,
               textAlign: "center",
               pointerEvents: "none",
               transform: "translateY(-50%)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 2,
             }}>
               <div style={{
                 fontFamily: "var(--app-font-cursive, cursive)",
@@ -396,7 +392,19 @@ export default function GeneratePage() {
               }}>
                 My Digital Events
               </div>
-              <div style={{
+            </div>
+
+            {/* ── MATCHMAKER subtitle — sits just below title ── */}
+            <div style={{
+              position: "absolute",
+              top: pY(ir, 0.683),
+              left: pX(ir, LM.shelfL),
+              width: pW(ir, LM.shelfR - LM.shelfL),
+              zIndex: 25,
+              textAlign: "center",
+              pointerEvents: "none",
+            }}>
+              <span style={{
                 fontWeight: 700,
                 fontSize: 10,
                 letterSpacing: "0.10em",
@@ -406,7 +414,7 @@ export default function GeneratePage() {
                 textShadow: "0 1px 4px rgba(0,0,0,0.4)",
               }}>
                 MATCHMAKER
-              </div>
+              </span>
             </div>
 
             {/* ── Spinning sparkle overlay ── */}
