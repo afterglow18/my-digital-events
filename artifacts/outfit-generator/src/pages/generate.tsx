@@ -284,7 +284,7 @@ export default function GeneratePage() {
         const bayHeights = LM.rows.map((_, i) =>
           Math.max(0, (allLabelYs[i] - labelHalfH) - bayTops[i])
         );
-        const uniformPhotoH = Math.max(30, Math.floor(Math.min(...bayHeights) * 0.82));
+        const uniformPhotoH = Math.max(30, Math.floor(Math.min(...bayHeights) * 0.94));
 
         const LABEL_MAP: Record<string, string> = {
           outfits: "Outfits", beauty: "Decor",

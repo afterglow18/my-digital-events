@@ -275,7 +275,7 @@ export default function WardrobePage() {
             const bayHeights = LM.rows.map((_, i) =>
               Math.max(0, (allLabelYs[i] - labelHalfH) - bayTops[i])
             );
-            const uniformPhotoH = Math.max(30, Math.floor(Math.min(...bayHeights) * 0.82));
+            const uniformPhotoH = Math.max(30, Math.floor(Math.min(...bayHeights) * 0.94));
 
             return ROWS.map(({ key, btnLabel }, rowIdx) => {
             const lm      = LM.rows[rowIdx];
