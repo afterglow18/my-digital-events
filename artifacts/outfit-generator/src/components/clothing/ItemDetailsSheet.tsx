@@ -546,7 +546,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
             </div>
           </div>
           <div className="flex flex-col gap-1 opacity-50 pointer-events-none">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#3A2210]/50">Times Worn</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#3A2210]/50">Times Used</span>
             <div className="border border-[#3A2210]/15 rounded-xl px-3 py-2 text-sm font-medium bg-white/50">
               {item.timesWorn ?? 0}
             </div>
@@ -587,7 +587,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
                        hover:border-red-400 hover:text-red-500 transition-all"
           >
             <Trash2 className="w-4 h-4" />
-            Delete from Event Forever
+            Delete from Events Forever
           </button>
         ) : (
           <div className="flex gap-2">
