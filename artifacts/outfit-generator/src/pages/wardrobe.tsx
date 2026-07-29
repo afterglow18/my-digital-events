@@ -297,7 +297,8 @@ export default function WardrobePage() {
             const bayBot   = labelY - labelHalfH;
             const bayH     = Math.max(0, bayBot - bayTop);
             const photoH   = Math.min(uniformPhotoH, bayH);
-            const photoTop = bayTop + (bayH - photoH) / 2 + 5;
+            const ROW_NUDGE = [6, 0, 0, -6]; // Outfits down, Memories up
+            const photoTop = bayTop + (bayH - photoH) / 2 + 5 + ROW_NUDGE[rowIdx];
 
             return (
               <React.Fragment key={key}>
