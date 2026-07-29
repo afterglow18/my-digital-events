@@ -296,7 +296,7 @@ export default function WardrobePage() {
             const btnH    = Math.max(32, pH(ir, 0.045));
 
             // Top two rows nudged down; bottom two rows nudged up
-            const labelShift = [0.048, 0.048, -0.042, -0.042][rowIdx];
+            const labelShift = [0.028, 0.028, -0.018, -0.018][rowIdx];
             const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08 + labelShift);
 
             return (
