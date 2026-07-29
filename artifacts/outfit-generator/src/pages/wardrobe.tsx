@@ -239,7 +239,7 @@ export default function WardrobePage() {
           {/* ── Page title — below bottom shelf ── */}
           <div style={{
             position: "absolute",
-            top: pY(ir, 0.655),
+            top: pY(ir, 0.660),
             left: pX(ir, LM.shelfL),
             width: pW(ir, LM.shelfR - LM.shelfL),
             zIndex: 25,
