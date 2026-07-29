@@ -299,7 +299,9 @@ export default function WardrobePage() {
             const btnCY   = pY(ir, lm.btnCY);
             const btnH    = Math.max(32, pH(ir, 0.045));
 
-            const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08);
+            // Top two rows nudged down; bottom two rows nudged up
+            const labelShift = [0.030, 0.030, -0.025, -0.025][rowIdx];
+            const labelY = pY(ir, lm.btnCY + (lm.sectionTop - lm.btnCY) * 0.08 + labelShift);
 
             return (
               <React.Fragment key={key}>
