@@ -325,9 +325,10 @@ export default function WardrobePage() {
                     fontSize: Math.max(9, pH(ir, 0.013)),
                     fontWeight: 800,
                     letterSpacing: "0.12em",
-                    color: "#3A2210",
+                    color: "#ffffff",
                     fontFamily: "var(--font-display)",
                     textTransform: "uppercase",
+                    textShadow: "0 1px 4px rgba(0,0,0,0.3)",
                   }}>
                     {btnLabel}
                   </span>
