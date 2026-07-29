@@ -262,9 +262,10 @@ export default function GeneratePage() {
       />
 
       {ready && (() => {
-        // ── Carousel bounds — same as wardrobe ────────────────────────────
-        const carLeft = pX(ir, LM.shelfL);
-        const carW    = pW(ir, LM.shelfR - LM.shelfL);
+        // ── Carousel bounds — inset from shelf edges so side cards stay on shelf ─
+        const CAR_INSET = 0.09;
+        const carLeft = pX(ir, LM.shelfL + CAR_INSET);
+        const carW    = pW(ir, (LM.shelfR - CAR_INSET) - (LM.shelfL + CAR_INSET));
 
         // ── Pre-compute all heading Y positions (same shifts as wardrobe) ─
         const LABEL_SHIFTS = [0.018, 0.028, -0.022, -0.028];

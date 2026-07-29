@@ -281,9 +281,10 @@ export default function WardrobePage() {
             const lm      = LM.rows[rowIdx];
             const items   = rowData[key];
 
-            // Carousel spans the same horizontal band as the heading labels
-            const carLeft = pX(ir, LM.shelfL);
-            const carW    = pW(ir, LM.shelfR - LM.shelfL);
+            // Carousel inset from shelf edges so side cards stay on shelf
+            const CAR_INSET = 0.09;
+            const carLeft = pX(ir, LM.shelfL + CAR_INSET);
+            const carW    = pW(ir, (LM.shelfR - CAR_INSET) - (LM.shelfL + CAR_INSET));
 
             // ADD button tap zone
             const btnCY   = pY(ir, lm.btnCY);
