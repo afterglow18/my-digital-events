@@ -259,7 +259,7 @@ export default function WardrobePage() {
               My Digital Events
             </div>
 
-            {/* Item-count badge sits directly under title */}
+            {/* Item-count — no pill, plain text */}
             {itemsLeft !== null && (
               <button
                 onClick={() => setUpgradeReason("items")}
@@ -267,17 +267,13 @@ export default function WardrobePage() {
                 aria-label={`${totalItems} of ${FREE_ITEM_LIMIT} items used — tap to upgrade`}
                 style={{
                   pointerEvents: "auto",
-                  padding: "3px 14px", borderRadius: 20, border: "none",
-                  background: totalItems >= FREE_ITEM_LIMIT
-                    ? "rgba(200,40,40,0.14)"
-                    : "rgba(255,255,255,0.55)",
-                  boxShadow: totalItems >= FREE_ITEM_LIMIT
-                    ? "0 0 0 2px rgba(200,40,40,0.40)"
-                    : "0 0 0 1.5px rgba(180,100,110,0.28)",
-                  color: totalItems >= FREE_ITEM_LIMIT ? "#aa0000" : "#7a3a40",
+                  padding: 0, border: "none", background: "transparent",
+                  color: totalItems >= FREE_ITEM_LIMIT ? "#ffaaaa" : "rgba(255,255,255,0.80)",
                   fontWeight: 700, fontSize: 10,
-                  letterSpacing: "0.08em", textTransform: "uppercase",
+                  letterSpacing: "0.10em", textTransform: "uppercase",
                   whiteSpace: "nowrap", cursor: "pointer",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.4)",
+                  marginTop: -2,
                 }}
               >
                 {totalItems}/{FREE_ITEM_LIMIT} ITEMS
