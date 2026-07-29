@@ -232,12 +232,12 @@ export default function WardrobePage() {
 
       {ready && (
         <>
-          {/* ── Page title + item counter pinned to top ── */}
+          {/* ── Page title + item counter pinned to top, bounded to shelf interior ── */}
           <div style={{
             position: "absolute",
             top: `calc(6px + env(safe-area-inset-top))`,
-            left: 8,
-            right: 8,
+            left: pX(ir, LM.doorL),
+            width: pW(ir, LM.doorR - LM.doorL),
             zIndex: 25,
             textAlign: "center",
             pointerEvents: "none",
