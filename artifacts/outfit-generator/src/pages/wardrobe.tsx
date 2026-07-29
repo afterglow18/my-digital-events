@@ -301,7 +301,7 @@ export default function WardrobePage() {
             const bayBot   = labelY - labelHalfH;
             const bayH     = Math.max(0, bayBot - bayTop);
             const photoH   = Math.min(uniformPhotoH, bayH);
-            const photoTop = bayTop + (bayH - photoH) / 2 + 10;
+            const photoTop = bayTop + (bayH - photoH) / 2 + 5;
 
             return (
               <React.Fragment key={key}>
