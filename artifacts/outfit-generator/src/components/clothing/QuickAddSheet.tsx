@@ -118,7 +118,6 @@ interface Props {
 }
 
 const PHOTO_TIPS = [
-  "Photograph individual products or bundle multiple items together.",
   "Lay everything flat on a plain background.",
   "Take the photo from directly above.",
   "Keep all items fully in frame.",
@@ -369,8 +368,8 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
             {CATEGORY_EXAMPLES[category] && (
               <div className="border-2 border-black rounded-2xl bg-white p-4
                               shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                <p className="font-display font-bold text-sm uppercase tracking-tight mb-2 flex items-center gap-2">
-                  <span>{CATEGORY_EXAMPLES[category].emoji}</span> WHAT TO ADD
+                <p className="font-display font-bold text-sm uppercase tracking-tight mb-2">
+                  WHAT TO ADD
                 </p>
                 <p className="text-sm text-black/70 leading-snug">
                   {CATEGORY_EXAMPLES[category].items.join(", ")}
@@ -380,8 +379,8 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
 
             <div className="border-2 border-black rounded-2xl bg-white p-4
                             shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-              <p className="font-display font-bold text-sm uppercase tracking-tight mb-3 flex items-center gap-2">
-                <span>📸</span> PHOTO TIPS
+              <p className="font-display font-bold text-sm uppercase tracking-tight mb-3">
+                PHOTO TIPS
               </p>
               <ul className="flex flex-col gap-2">
                 {PHOTO_TIPS.map((tip) => (
@@ -546,7 +545,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
                 ) : isMulti && photoIndex + 1 < pendingFiles.length ? (
                   <><Check className="w-4 h-4" /> Save &amp; Next</>
                 ) : (
-                  <><Check className="w-4 h-4" /> Save to Wardrobe</>
+                  <><Check className="w-4 h-4" /> Save to Events</>
                 )}
               </button>
             </div>

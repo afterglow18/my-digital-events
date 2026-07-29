@@ -47,11 +47,11 @@ const LM = {
 
 interface ImgRect {
   top: number; left: number; width: number; height: number;
-  containerH: number;
+  containerH: number; containerW: number;
 }
 
 function useImageRect(ref: RefObject<HTMLDivElement>): ImgRect {
-  const [rect, setRect] = useState<ImgRect>({ top: 0, left: 0, width: 0, height: 0, containerH: 0 });
+  const [rect, setRect] = useState<ImgRect>({ top: 0, left: 0, width: 0, height: 0, containerH: 0, containerW: 0 });
   useEffect(() => {
     const compute = () => {
       const c = ref.current;
@@ -59,7 +59,7 @@ function useImageRect(ref: RefObject<HTMLDivElement>): ImgRect {
       const cW = c.clientWidth, cH = c.clientHeight;
       const iR = IMG_W / IMG_H;
       // Fill: stretch image to exactly match container — full bed visible
-      setRect({ top: 0, left: 0, width: cW, height: cH, containerH: cH });
+      setRect({ top: 0, left: 0, width: cW, height: cH, containerH: cH, containerW: cW });
     };
     compute();
     window.addEventListener("resize", compute);
