@@ -261,7 +261,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
       try {
         const photo = await Camera.getPhoto({
           resultType: CameraResultType.DataUrl,
-          source: CameraSource.Camera,
+          source: CameraSource.Prompt,
           quality: 90,
           allowEditing: false,
           saveToGallery: false,
