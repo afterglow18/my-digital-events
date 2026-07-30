@@ -22,11 +22,13 @@ const config: CapacitorConfig = {
     // a captured photo back to the device library (commonly overlooked).
     infoPlist: {
       NSCameraUsageDescription:
-        'My Events uses your camera to photograph outfits and event looks.',
+        'My Digital Events uses your camera to photograph items for your event.',
+      NSMicrophoneUsageDescription:
+        'My Digital Events requires microphone access as part of the iOS camera system.',
       NSPhotoLibraryUsageDescription:
-        'My Events reads your photo library so you can choose existing photos for your wardrobe.',
+        'My Digital Events reads your photo library so you can choose existing photos for your event.',
       NSPhotoLibraryAddUsageDescription:
-        'My Events saves photos you take directly to your library.',
+        'My Digital Events saves photos you take directly to your library.',
     },
   },
 
