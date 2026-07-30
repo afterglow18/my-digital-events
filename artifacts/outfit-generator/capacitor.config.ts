@@ -13,8 +13,9 @@ const config: CapacitorConfig = {
     scrollEnabled: true,
     // Prevents white flash on launch
     backgroundColor: '#F9F4EE',
-    // Allow inline media playback (used for wardrobe image previews)
+    // Allow inline media playback and camera access without user gesture requirement
     allowsInlineMediaPlayback: true,
+    mediaTypesRequiringUserActionForPlayback: "none",
 
     // Privacy usage descriptions — iOS refuses camera/picker access (SIGABRT via
     // TCC) if any of these three keys is missing from Info.plist.
