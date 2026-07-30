@@ -101,6 +101,16 @@ workflows:
           # Required for Face ID usage
           /usr/libexec/PlistBuddy -c "Add :NSFaceIDUsageDescription string 'My Digital Events uses Face ID to protect your data.'" App/Info.plist 2>/dev/null || \
           /usr/libexec/PlistBuddy -c "Set :NSFaceIDUsageDescription 'My Digital Events uses Face ID to protect your data.'" App/Info.plist
+          # Camera / photo library privacy strings (ITMS-90683) — injected here
+          # because cap sync does not reliably merge infoPlist from capacitor.config.ts
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'My Digital Events uses your camera to photograph items for your event.'" App/Info.plist 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Set :NSCameraUsageDescription 'My Digital Events uses your camera to photograph items for your event.'" App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'My Digital Events requires microphone access as part of the iOS camera system.'" App/Info.plist 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Set :NSMicrophoneUsageDescription 'My Digital Events requires microphone access as part of the iOS camera system.'" App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryUsageDescription string 'My Digital Events reads your photo library so you can choose existing photos for your event.'" App/Info.plist 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Set :NSPhotoLibraryUsageDescription 'My Digital Events reads your photo library so you can choose existing photos for your event.'" App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryAddUsageDescription string 'My Digital Events saves photos you take directly to your library.'" App/Info.plist 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Set :NSPhotoLibraryAddUsageDescription 'My Digital Events saves photos you take directly to your library.'" App/Info.plist
 
       - name: Re-apply provisioning profiles after cap sync
         script: |
