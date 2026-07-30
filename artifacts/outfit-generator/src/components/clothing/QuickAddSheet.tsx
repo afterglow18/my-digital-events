@@ -365,18 +365,6 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </button>
             </div>
 
-            {CATEGORY_EXAMPLES[category] && (
-              <div className="border-2 border-black rounded-2xl bg-white p-4
-                              shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                <p className="font-display font-bold text-sm uppercase tracking-tight mb-2">
-                  WHAT TO ADD
-                </p>
-                <p className="text-sm text-black/70 leading-snug">
-                  {CATEGORY_EXAMPLES[category].items.join(", ")}
-                </p>
-              </div>
-            )}
-
             <div className="border-2 border-black rounded-2xl bg-white p-4
                             shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
               <p className="font-display font-bold text-sm uppercase tracking-tight mb-3">
@@ -509,8 +497,15 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
               </button>
             </div>
 
-            {/* Action row */}
-            <div style={{ display: "flex", gap: 10 }}>
+            {/* Action row — sticky so it's always reachable */}
+            <div style={{
+              display: "flex", gap: 10,
+              position: "sticky", bottom: 0,
+              background: "#f9f4ee",
+              padding: "12px 0 max(12px, env(safe-area-inset-bottom))",
+              marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20,
+              borderTop: "2px solid rgba(0,0,0,0.08)",
+            }}>
               <button
                 onClick={() => {
                   // If there are queued photos, abandon this batch and return to pick
