@@ -23,6 +23,8 @@ import {
   blobToDataUrl,
   dataUrlToBlob,
 } from "@/lib/backgroundRemoval";
+import { Capacitor } from "@capacitor/core";
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -253,6 +255,32 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
     }
   }, []);
 
+  // ── Native camera via @capacitor/camera (avoids WKWebView file-input crash) ─
+  const handleCameraClick = useCallback(async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const photo = await Camera.getPhoto({
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Camera,
+          quality: 90,
+          allowEditing: false,
+          saveToGallery: false,
+        });
+        if (photo.dataUrl) {
+          const blob = await dataUrlToBlob(photo.dataUrl);
+          handleFile(new File([blob], "photo.jpg", { type: blob.type || "image/jpeg" }));
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (!msg.toLowerCase().includes("cancel") && !msg.toLowerCase().includes("no image")) {
+          setErrorMsg("Could not open camera. Please try again.");
+        }
+      }
+    } else {
+      cameraInputRef.current?.click();
+    }
+  }, [handleFile]);
+
   // ── Save chosen version, then advance to next photo or close ─────────────
   const handleSave = useCallback(async (currentIndex: number, queue: File[]) => {
     const blob = selected === "cleaned" && cleanedBlob ? cleanedBlob : originalBlob;
@@ -337,7 +365,7 @@ export function QuickAddSheet({ open, onOpenChange, category, existingCount, onC
 
             <div className="flex gap-3">
               <button
-                onClick={() => cameraInputRef.current?.click()}
+                onClick={handleCameraClick}
                 className="flex-1 flex flex-col items-center justify-center gap-3 py-8
                            border-4 border-black rounded-2xl bg-primary
                            shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]
