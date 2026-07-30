@@ -170,6 +170,8 @@ export default function WelcomePage({ onEnter }: Props) {
         overflow: "hidden",
         background: "#0c0c14",
       }}
+      animate={{ opacity: isFloating ? 0 : 1 }}
+      transition={{ duration: isFloating ? 0.55 : 0, delay: isFloating ? 0.2 : 0, ease: "easeIn" }}
     >
       {/* ── Hero image — always behind everything ── */}
       <img
@@ -185,15 +187,11 @@ export default function WelcomePage({ onEnter }: Props) {
         }}
       />
 
-      {/* ── Dark overlay — present during balloon phase, fades out on exit ── */}
+      {/* ── Dark overlay — stays dark throughout; whole screen fades on exit ── */}
       <motion.div
         style={{ position: "absolute", inset: 0, zIndex: 2, background: "#0c0c14" }}
-        animate={{ opacity: isFloating ? 0 : 0.78 }}
-        transition={{
-          duration: isFloating ? 1.2 : 0.5,
-          delay: isFloating ? 0.4 : 0,
-          ease: "easeOut",
-        }}
+        animate={{ opacity: 0.78 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
       />
 
       {/* ── Balloons ── */}
