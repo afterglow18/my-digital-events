@@ -129,10 +129,20 @@ function openUrl(url: string) {
 }
 
 export function UpgradeSheet({ reason, onClose }: Props) {
-  const { offerings, purchase, restore, isRestoring } = useSubscription();
+  const { offerings, purchase, restore, isRestoring, isLoading } = useSubscription();
   const [selected, setSelected] = useState<TierId>("lifetime");
   const [status,   setStatus]   = useState<"idle" | "pending">("idle");
   const [errMsg,   setErrMsg]   = useState<string | null>(null);
+
+  // Log offerings structure once they arrive so we can diagnose package mismatches
+  React.useEffect(() => {
+    if (!isLoading && offerings !== null) {
+      console.log("[UpgradeSheet] Offerings loaded:", JSON.stringify(offerings));
+    }
+    if (!isLoading && offerings === null) {
+      console.warn("[UpgradeSheet] Offerings are null after load — check RC dashboard default offering");
+    }
+  }, [isLoading, offerings]);
 
   const prices: Record<TierId, string> = {
     monthly:  getLivePrice(offerings, "$rc_monthly",  "$1.99"),
@@ -141,7 +151,8 @@ export function UpgradeSheet({ reason, onClose }: Props) {
   };
 
   const ctaLabel =
-    status === "pending"        ? "Opening…"
+    isLoading                   ? "Loading store…"
+    : status === "pending"      ? "Opening…"
     : selected === "lifetime"   ? `UNLOCK FOREVER – ${prices.lifetime} ›`
     : selected === "yearly"     ? `SUBSCRIBE – ${prices.yearly}/YR ›`
     :                             `SUBSCRIBE – ${prices.monthly}/MO ›`;
