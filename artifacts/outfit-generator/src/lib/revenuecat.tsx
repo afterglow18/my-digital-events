@@ -19,6 +19,9 @@
 import React, { createContext, useContext, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+// Static import — dynamic import() creates a lazy chunk that hangs silently in
+// Capacitor's WKWebView, preventing configure() from ever being reached.
+import { Purchases, LOG_LEVEL } from "@revenuecat/purchases-capacitor";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -34,59 +37,29 @@ function getApiKey(): string {
   throw new Error("RevenueCat API key not configured");
 }
 
-// ── Lazy-import Purchases so it doesn't crash in the browser ─────────────────
-
-type PurchasesType = typeof import("@revenuecat/purchases-capacitor").Purchases;
-let _Purchases: PurchasesType | null = null;
-
-async function getPurchases(): Promise<PurchasesType | null> {
-  if (!Capacitor.isNativePlatform()) return null;
-  if (_Purchases) return _Purchases;
-  try {
-    const mod = await import("@revenuecat/purchases-capacitor");
-    _Purchases = mod.Purchases;
-    return _Purchases;
-  } catch {
-    return null;
-  }
-}
-
 // ── Initialization ────────────────────────────────────────────────────────────
 
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const id = setTimeout(() => reject(new Error("timed out")), ms);
-    promise.then(
-      (v) => { clearTimeout(id); resolve(v); },
-      (e) => { clearTimeout(id); reject(e); },
-    );
-  });
-}
-
 export async function initializeRevenueCat(): Promise<void> {
-  const Purchases = await getPurchases();
-  if (!Purchases) return;
+  if (!Capacitor.isNativePlatform()) return;
 
   const apiKey = getApiKey();
 
-  try {
-    const { LOG_LEVEL } = await import("@revenuecat/purchases-capacitor");
-    await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
-  } catch { /* non-fatal */ }
+  // Fire-and-forget — do NOT await either call.
+  // On Capacitor 8 + SPM the Swift→JS bridge response may never arrive, so
+  // awaiting blocks indefinitely. The native SDK initialises synchronously on
+  // message receipt; we only log the response for diagnostics.
+  void Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG })
+    .then(() => console.log("[RC] setLogLevel ✓"))
+    .catch((e) => console.warn("[RC] setLogLevel failed:", e));
 
-  // RC Capacitor v13 returns CustomerInfo from configure() (a network call).
-  // Awaiting it without a timeout blocks indefinitely when RC servers are slow.
-  // A timeout here is safe — if it fires, the SDK is still initialised.
-  try {
-    await withTimeout(Purchases.configure({ apiKey }), 5000);
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (!msg.includes("timed out")) throw e;
-    // Timed out waiting for initial CustomerInfo — SDK is ready, continue.
-    console.warn("[RevenueCat] configure() timed out (SDK ready, CustomerInfo will load async)");
-  }
+  void Purchases.configure({ apiKey })
+    .then(() => console.log("[RC] configure() response ✓"))
+    .catch((e) => console.error("[RC] configure() error:", e));
 
-  console.log("[RevenueCat] Configured");
+  // One microtask to let the bridge messages dispatch before we return.
+  await Promise.resolve();
+
+  console.log("[RC] initializeRevenueCat complete — configure() dispatched");
 }
 
 // ── Query key ─────────────────────────────────────────────────────────────────
@@ -103,8 +76,7 @@ function useSubscriptionContext() {
   const customerInfoQuery = useQuery({
     queryKey: CUSTOMER_INFO_KEY,
     queryFn: async () => {
-      const Purchases = await getPurchases();
-      if (!Purchases) return null;
+      if (!Capacitor.isNativePlatform()) return null;
       const { customerInfo } = await Purchases.getCustomerInfo();
       return customerInfo;
     },
@@ -115,8 +87,7 @@ function useSubscriptionContext() {
   const offeringsQuery = useQuery({
     queryKey: ["revenuecat", "offerings"],
     queryFn: async () => {
-      const Purchases = await getPurchases();
-      if (!Purchases) return null;
+      if (!Capacitor.isNativePlatform()) return null;
       const result = await Purchases.getOfferings();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (result as any).offerings ?? result ?? null;
@@ -129,7 +100,6 @@ function useSubscriptionContext() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // PluginListenerHandle has remove(): Promise<void>
     let appListenerHandle: Awaited<ReturnType<typeof import("@capacitor/app").App.addListener>> | null = null;
     let rcCallbackId: string | null = null;
 
@@ -139,37 +109,31 @@ function useSubscriptionContext() {
         const { App } = await import("@capacitor/app");
         appListenerHandle = await App.addListener("appStateChange", ({ isActive }) => {
           if (isActive) {
-            console.log("[RevenueCat] App foregrounded — rechecking CustomerInfo");
+            console.log("[RC] App foregrounded — rechecking CustomerInfo");
             qc.invalidateQueries({ queryKey: CUSTOMER_INFO_KEY });
           }
         });
       } catch (err) {
-        console.warn("[RevenueCat] Could not add appStateChange listener:", err);
+        console.warn("[RC] Could not add appStateChange listener:", err);
       }
 
       // 2. RC server-push: fires when RC detects a refund, expiry, or any
       //    server-side entitlement change — revokes access in real-time.
       try {
-        const Purchases = await getPurchases();
-        if (Purchases) {
-          rcCallbackId = await Purchases.addCustomerInfoUpdateListener(
-            (customerInfo) => {
-              console.log("[RevenueCat] CustomerInfo pushed from server — updating cache");
-              qc.setQueryData(CUSTOMER_INFO_KEY, customerInfo);
-            }
-          );
-        }
+        rcCallbackId = await Purchases.addCustomerInfoUpdateListener((customerInfo) => {
+          console.log("[RC] CustomerInfo pushed from server — updating cache");
+          qc.setQueryData(CUSTOMER_INFO_KEY, customerInfo);
+        });
       } catch (err) {
-        console.warn("[RevenueCat] Could not add CustomerInfo listener:", err);
+        console.warn("[RC] Could not add CustomerInfo listener:", err);
       }
     })();
 
     return () => {
       appListenerHandle?.remove();
       if (rcCallbackId !== null) {
-        getPurchases().then((Purchases) => {
-          Purchases?.removeCustomerInfoUpdateListener({ listenerToRemove: rcCallbackId! });
-        }).catch(() => {/* non-fatal */});
+        Purchases.removeCustomerInfoUpdateListener({ listenerToRemove: rcCallbackId })
+          .catch(() => {/* non-fatal */});
       }
     };
   }, [qc]);
@@ -177,14 +141,11 @@ function useSubscriptionContext() {
   // ── Purchase ───────────────────────────────────────────────────────────────
   const purchaseMutation = useMutation({
     mutationFn: async (pkg: unknown) => {
-      const Purchases = await getPurchases();
-      if (!Purchases) throw new Error("Purchases not available in browser");
+      if (!Capacitor.isNativePlatform()) throw new Error("Purchases not available in browser");
       const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg as never });
       return customerInfo;
     },
     onSuccess: (customerInfo) => {
-      // Seed the cache immediately with the fresh CustomerInfo RC just returned,
-      // then invalidate to schedule a background re-fetch for confirmation.
       qc.setQueryData(CUSTOMER_INFO_KEY, customerInfo);
       qc.invalidateQueries({ queryKey: ["revenuecat"] });
     },
@@ -193,13 +154,11 @@ function useSubscriptionContext() {
   // ── Restore ────────────────────────────────────────────────────────────────
   const restoreMutation = useMutation({
     mutationFn: async () => {
-      const Purchases = await getPurchases();
-      if (!Purchases) throw new Error("Purchases not available in browser");
+      if (!Capacitor.isNativePlatform()) throw new Error("Purchases not available in browser");
       const { customerInfo } = await Purchases.restorePurchases();
       return customerInfo;
     },
     onSuccess: (customerInfo) => {
-      // Same pattern: seed immediately, then confirm in background.
       qc.setQueryData(CUSTOMER_INFO_KEY, customerInfo);
       qc.invalidateQueries({ queryKey: ["revenuecat"] });
     },
