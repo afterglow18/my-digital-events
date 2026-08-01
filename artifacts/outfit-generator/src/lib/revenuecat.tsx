@@ -53,6 +53,16 @@ async function getPurchases(): Promise<PurchasesType | null> {
 
 // ── Initialization ────────────────────────────────────────────────────────────
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("timed out")), ms);
+    promise.then(
+      (v) => { clearTimeout(id); resolve(v); },
+      (e) => { clearTimeout(id); reject(e); },
+    );
+  });
+}
+
 export async function initializeRevenueCat(): Promise<void> {
   const Purchases = await getPurchases();
   if (!Purchases) return;
@@ -64,7 +74,18 @@ export async function initializeRevenueCat(): Promise<void> {
     await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
   } catch { /* non-fatal */ }
 
-  await Purchases.configure({ apiKey });
+  // RC Capacitor v13 returns CustomerInfo from configure() (a network call).
+  // Awaiting it without a timeout blocks indefinitely when RC servers are slow.
+  // A timeout here is safe — if it fires, the SDK is still initialised.
+  try {
+    await withTimeout(Purchases.configure({ apiKey }), 5000);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (!msg.includes("timed out")) throw e;
+    // Timed out waiting for initial CustomerInfo — SDK is ready, continue.
+    console.warn("[RevenueCat] configure() timed out (SDK ready, CustomerInfo will load async)");
+  }
+
   console.log("[RevenueCat] Configured");
 }
 
