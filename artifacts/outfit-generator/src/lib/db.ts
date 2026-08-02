@@ -10,12 +10,15 @@
  *   saved_outfits   — named outfit collections
  *   outfit_items    — junction: outfit ↔ clothing item
  *   settings        — key/value store for app preferences
+ *
+ * Schema v2 (additive):
+ *   clothing_items  — adds visionLabels, visionText, visionVersion (no new stores/indexes)
  */
 
 import { openDB, type IDBPDatabase } from "idb";
 
 export const DB_NAME    = "my-digital-events";
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 // ── Stored types (IndexedDB records) ─────────────────────────────────────────
 
@@ -36,6 +39,10 @@ export interface StoredClothingItem {
   notes?:         string | null;
   createdAt:      string;
   updatedAt:      string;
+  // Vision search fields (v2) — may be absent on records written before v2
+  visionLabels?:  string[];
+  visionText?:    string[];
+  visionVersion?: number;
 }
 
 export interface StoredOutfit {
@@ -60,6 +67,11 @@ export interface StoredSetting {
 
 export interface ClothingItem extends Required<StoredClothingItem> {
   id: number;
+  // Override vision fields to ensure they're always non-optional at call sites
+  // (normalizeItem fills them in when reading old records)
+  visionLabels: string[];
+  visionText:   string[];
+  visionVersion: number;
 }
 
 export interface SavedOutfit {
@@ -78,8 +90,8 @@ export async function getDB(): Promise<IDBPDatabase> {
   if (_db) return _db;
 
   _db = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      // clothing_items
+    upgrade(db, oldVersion) {
+      // v1 → create all stores if they don't exist yet
       if (!db.objectStoreNames.contains("clothing_items")) {
         const store = db.createObjectStore("clothing_items", {
           keyPath:       "id",
@@ -89,7 +101,6 @@ export async function getDB(): Promise<IDBPDatabase> {
         store.createIndex("by_favorite", "isFavorite");
       }
 
-      // saved_outfits
       if (!db.objectStoreNames.contains("saved_outfits")) {
         db.createObjectStore("saved_outfits", {
           keyPath:       "id",
@@ -97,7 +108,6 @@ export async function getDB(): Promise<IDBPDatabase> {
         });
       }
 
-      // outfit_items
       if (!db.objectStoreNames.contains("outfit_items")) {
         const store = db.createObjectStore("outfit_items", {
           keyPath:       "id",
@@ -107,9 +117,14 @@ export async function getDB(): Promise<IDBPDatabase> {
         store.createIndex("by_item",   "clothingItemId");
       }
 
-      // settings
       if (!db.objectStoreNames.contains("settings")) {
         db.createObjectStore("settings", { keyPath: "key" });
+      }
+
+      // v2 → no new stores/indexes needed; vision fields are schemaless JSON
+      // Existing records will have visionVersion = undefined → treated as 0 by normalizeItem
+      if (oldVersion < 2) {
+        console.info("[DB] Upgraded to v2 (vision search fields added)");
       }
     },
 

@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   useListOutfits,
+  useListClothing,
   useDeleteOutfit,
   useRenameOutfit,
   useAddItemToOutfit,
@@ -8,7 +9,8 @@ import {
   getListOutfitsQueryKey,
   type ClothingItem,
 } from "@/hooks/useLocalDB";
-import { Trash2, Bookmark, Plus, Pencil, Check, X } from "lucide-react";
+import { Trash2, Bookmark, Plus, Pencil, Check, X, Search } from "lucide-react";
+import { searchItems } from "@/lib/searchItems";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImageUrl } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -65,6 +67,7 @@ function ItemPhoto({
 
 export default function SavedPage() {
   const { data: outfits, isLoading } = useListOutfits();
+  const { data: allItems = [] }       = useListClothing();
   const deleteOutfit = useDeleteOutfit();
   const renameOutfit = useRenameOutfit();
   const removeItemFromOutfit = useRemoveItemFromOutfit();
@@ -75,6 +78,7 @@ export default function SavedPage() {
   const [replacingSlot, setReplacingSlot] = useState<{ outfitId: number; category: SlotKey } | null>(null);
   const [addingExtra, setAddingExtra]     = useState<number | null>(null);
   const [detailsItem, setDetailsItem] = useState<ClothingItem | null>(null);
+  const [query, setQuery]             = useState("");
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +131,13 @@ export default function SavedPage() {
   const outfitCount = outfits?.length ?? 0;
   const atLimit = isFree && outfitCount >= FREE_OUTFIT_LIMIT;
 
+  // ── Search ─────────────────────────────────────────────────────────────────
+  const searchResults = useMemo(() => {
+    const q = query.trim();
+    if (!q) return null;
+    return searchItems(q, allItems, outfits ?? []);
+  }, [query, allItems, outfits]);
+
   const handleDelete = (id: number) => {
     deleteOutfit.mutate(
       { id },
@@ -161,7 +172,7 @@ export default function SavedPage() {
 
   return (
     <div className="min-h-full flex flex-col pt-8 px-4 pb-8 bg-secondary/10 relative md:px-8 md:max-w-4xl md:mx-auto md:w-full">
-      <header className="mb-6">
+      <header className="mb-4">
         <h1 className="text-4xl font-display font-bold uppercase tracking-tighter mb-1">Lookbook</h1>
         <div className="flex items-center justify-between">
           <p className="font-medium text-muted-foreground text-sm">Hall of fame.</p>
@@ -183,6 +194,29 @@ export default function SavedPage() {
           )}
         </div>
       </header>
+
+      {/* ── Search bar ── */}
+      <div className="relative mb-5">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/35 pointer-events-none" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by name, category, or notes…"
+          className="w-full pl-9 pr-4 py-2.5 border-2 border-black rounded-xl text-sm font-medium
+                     bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none
+                     focus:ring-2 focus:ring-black/20 placeholder:font-normal placeholder:text-black/35"
+        />
+        {query.length > 0 && (
+          <button
+            onClick={() => setQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full
+                       bg-black/15 flex items-center justify-center"
+          >
+            <X className="w-3 h-3 text-black/60" />
+          </button>
+        )}
+      </div>
 
       {atLimit && !isLoading && (
         <motion.div
@@ -210,13 +244,117 @@ export default function SavedPage() {
         </motion.div>
       )}
 
-      {isLoading ? (
+      {/* ── Search results ── */}
+      {searchResults && (
+        <div className="flex flex-col gap-6 mb-6">
+          {/* Items section */}
+          {searchResults.items.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 mb-2">
+                Items ({searchResults.items.length})
+              </p>
+              <div className="grid grid-cols-4 gap-2">
+                {searchResults.items.map(({ item }) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setDetailsItem(item)}
+                    className="flex flex-col gap-1"
+                  >
+                    <div
+                      className="w-full aspect-square border-2 border-black rounded-xl overflow-hidden
+                                 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                      style={{ background: "#F5EDD8" }}
+                    >
+                      {item.imageObjectPath ? (
+                        <img
+                          src={getImageUrl(item.imageObjectPath)!}
+                          alt={item.name}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-xl opacity-20">—</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[9px] font-bold uppercase text-center text-black/50 leading-tight truncate w-full">
+                      {item.name || "—"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Groups section */}
+          {searchResults.groups.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 mb-2">
+                Groups ({searchResults.groups.length})
+              </p>
+              <div className="flex flex-col gap-2">
+                {searchResults.groups.map(({ outfit }) => (
+                  <div
+                    key={outfit.id}
+                    className="flex items-center gap-3 px-3 py-3 border-2 border-black rounded-xl
+                               bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  >
+                    <div className="flex gap-1 flex-shrink-0">
+                      {outfit.items.slice(0, 3).map((i) => (
+                        <div
+                          key={i.id}
+                          className="h-10 w-10 border border-black/20 rounded overflow-hidden"
+                          style={{ background: "#F5EDD8" }}
+                        >
+                          {i.imageObjectPath && (
+                            <img
+                              src={getImageUrl(i.imageObjectPath)!}
+                              alt={i.name}
+                              className="w-full h-full object-contain"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display font-bold text-sm uppercase tracking-tight truncate">
+                        {outfit.name}
+                      </p>
+                      <p className="text-[10px] text-black/40">
+                        {outfit.items.length} item{outfit.items.length !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Empty search state */}
+          {searchResults.items.length === 0 && searchResults.groups.length === 0 && (
+            <div className="flex flex-col items-center justify-center text-center py-16
+                            border-2 border-black rounded-xl bg-white
+                            shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <Search className="w-10 h-10 text-black/20 mb-3" />
+              <p className="font-display font-bold text-base uppercase tracking-tight">
+                No results for "{query}"
+              </p>
+              <p className="text-xs text-black/40 mt-1">
+                Try a different name, colour, or category.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Normal outfit list (hidden while searching) ── */}
+      {!searchResults && isLoading ? (
         <div className="flex flex-col gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-52 bg-muted animate-pulse border-2 border-black rounded-xl" />
           ))}
         </div>
-      ) : outfits && outfits.length > 0 ? (
+      ) : !searchResults && outfits && outfits.length > 0 ? (
         <div className="flex flex-col gap-6">
           {outfits.map((outfit) => {
             // Group items by category — first match per slot wins
@@ -409,7 +547,7 @@ export default function SavedPage() {
             );
           })}
         </div>
-      ) : (
+      ) : !searchResults ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl mt-8">
           <div className="w-14 h-14 bg-accent rounded-full flex items-center justify-center border-2 border-black mb-4">
             <Bookmark className="w-7 h-7" />
@@ -419,7 +557,7 @@ export default function SavedPage() {
             Head to your Events, spin the slots, and save looks you love.
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* Upgrade sheet */}
       <AnimatePresence>

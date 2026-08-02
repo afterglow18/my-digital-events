@@ -1,0 +1,14 @@
+{
+  "name": "@workspace/vision-plugin",
+  "version": "0.1.0",
+  "description": "Apple Vision Framework Capacitor plugin for My Digital Events — returns object labels and recognised text from a photo.",
+  "main": "index.js",
+  "capacitor": {
+    "ios": {
+      "src": "ios/Plugin"
+    }
+  },
+  "peerDependencies": {
+    "@capacitor/core": ">=5.0.0"
+  }
+}

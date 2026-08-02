@@ -13,7 +13,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Heart, Trash2, Save, ChevronDown, Loader2, Sparkles, Check,
+  X, Heart, Trash2, Save, ChevronDown, Loader2, Sparkles, Check, PartyPopper,
 } from "lucide-react";
 import { removeBackground, compressPng } from "@/lib/backgroundRemoval";
 import {
@@ -27,6 +27,7 @@ import {
 } from "@/hooks/useLocalDB";
 import { useQueryClient } from "@tanstack/react-query";
 import { getImageUrl } from "@/lib/utils";
+import { LookbookPickerSheet } from "@/components/clothing/LookbookPickerSheet";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -113,6 +114,8 @@ interface ItemDetailsSheetProps {
   item: ClothingItem | null;
   onClose: () => void;
   onDeleted?: () => void;
+  /** When true, shows "Add to Lookbook 🎉" instead of "Remove Background" */
+  showAddToLookbook?: boolean;
 }
 
 interface FormState {
@@ -192,7 +195,7 @@ async function detectTransparency(dataUrl: string): Promise<boolean> {
   });
 }
 
-export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetProps) {
+export function ItemDetailsSheet({ item, onClose, onDeleted, showAddToLookbook = false }: ItemDetailsSheetProps) {
   const [form, setForm]           = useState<FormState | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -208,6 +211,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
   const [bgError,        setBgError]        = useState<string | null>(null);
   const [compareSelected, setCompareSelected] = useState<"original" | "cleaned">("original");
   const bgGenRef = useRef(0);  // guards stale async results
+  const [showLookbookPicker, setShowLookbookPicker] = useState(false);
 
   const updateItem  = useUpdateClothingItem();
   const deleteItem  = useDeleteClothingItem();
@@ -226,6 +230,7 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
     setCleanedUrl(null);
     setBgError(null);
     setCompareSelected("original");
+    setShowLookbookPicker(false);
     bgGenRef.current += 1;
   }, [item?.id]);
 
@@ -435,9 +440,21 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
             />
           </div>
 
-          {/* Remove Background button — shown when image has no transparency yet.
-              imageHasTransparency === null means still detecting; hide while unknown. */}
-          {imageHasTransparency === false && (
+          {/* Photo action — "Add to Lookbook" in lookbook mode, "Remove Background" otherwise */}
+          {showAddToLookbook ? (
+            <div className="px-4 py-3 bg-[#f9f4ee] border-t border-[#3A2210]/10">
+              <button
+                onClick={() => setShowLookbookPicker(true)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4
+                           border border-[#3A6B64] rounded-xl font-bold text-sm uppercase tracking-wide
+                           bg-gradient-to-b from-[#4E8880] to-[#3A6B64] text-[#D4B896]
+                           shadow-sm active:opacity-80 transition-all"
+              >
+                <PartyPopper className="w-4 h-4" />
+                Add to Lookbook
+              </button>
+            </div>
+          ) : imageHasTransparency === false && (
             <div className="px-4 py-3 bg-[#f9f4ee] border-t border-[#3A2210]/10 flex flex-col gap-1.5">
               <button
                 onClick={handleCleanUpPhoto}
@@ -460,6 +477,16 @@ export function ItemDetailsSheet({ item, onClose, onDeleted }: ItemDetailsSheetP
           )}
         </div>
       )}
+
+      {/* ── LookbookPickerSheet — slides up above the detail sheet ── */}
+      <AnimatePresence>
+        {showLookbookPicker && item && (
+          <LookbookPickerSheet
+            item={item}
+            onClose={() => setShowLookbookPicker(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── BgCompareOverlay — slides up above the detail sheet ── */}
       <AnimatePresence>

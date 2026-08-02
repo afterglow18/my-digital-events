@@ -9,6 +9,20 @@ import { getDB, type ClothingItem, type SavedOutfit, type StoredClothingItem, ty
 
 const CATEGORIES = ["outfits", "beauty", "toiletries", "essentials"] as const;
 
+// ── Vision field normalizer ───────────────────────────────────────────────────
+// Records written before DB v2 don't have visionLabels/visionText/visionVersion.
+// This fills in safe defaults so callers never see undefined.
+
+function normalizeItem(raw: unknown): ClothingItem {
+  const r = raw as StoredClothingItem & { id: number };
+  return {
+    ...r,
+    visionLabels:  r.visionLabels  ?? [],
+    visionText:    r.visionText    ?? [],
+    visionVersion: r.visionVersion ?? 0,
+  } as ClothingItem;
+}
+
 // ── Clothing items ────────────────────────────────────────────────────────────
 
 export async function listClothing(category?: string): Promise<ClothingItem[]> {
@@ -17,15 +31,16 @@ export async function listClothing(category?: string): Promise<ClothingItem[]> {
     ? await db.getAllFromIndex("clothing_items", "by_category", category)
     : await db.getAll("clothing_items");
 
-  return (all as ClothingItem[]).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return (all as (StoredClothingItem & { id: number })[])
+    .map(normalizeItem)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getClothingItem(id: number): Promise<ClothingItem | null> {
   const db   = await getDB();
   const item = await db.get("clothing_items", id);
-  return (item as ClothingItem) ?? null;
+  if (!item) return null;
+  return normalizeItem(item);
 }
 
 export async function createClothingItem(data: {
@@ -60,6 +75,10 @@ export async function createClothingItem(data: {
     notes:          data.notes ?? null,
     createdAt:      now,
     updatedAt:      now,
+    // Vision search fields — start unindexed; visionIndexer fills them in
+    visionLabels:   [],
+    visionText:     [],
+    visionVersion:  0,
   };
 
   const id = await db.add("clothing_items", record);

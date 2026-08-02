@@ -61,6 +61,15 @@ workflows:
             rm "$RC_PATH"
             mv "${RC_PATH}-real" "$RC_PATH"
           fi
+          # Dereference @workspace/vision-plugin symlink so Xcode can compile
+          # the Swift source — pnpm workspace symlinks cause cap sync to skip
+          # the native source copy.
+          VISION_PATH="node_modules/@workspace/vision-plugin"
+          if [ -L "$VISION_PATH" ]; then
+            cp -rL "$VISION_PATH" "${VISION_PATH}-real"
+            rm "$VISION_PATH"
+            mv "${VISION_PATH}-real" "$VISION_PATH"
+          fi
           npx cap add ios
           npx cap sync ios
 
