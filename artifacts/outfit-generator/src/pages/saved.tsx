@@ -604,6 +604,7 @@ export default function SavedPage() {
             key={detailsItem.id}
             item={detailsItem}
             onClose={() => setDetailsItem(null)}
+            showAddToLookbook
           />
         )}
       </AnimatePresence>
